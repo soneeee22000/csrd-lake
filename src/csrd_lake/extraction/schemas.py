@@ -33,7 +33,7 @@ class Language(StrEnum):
 class ExtractionModel(StrEnum):
     """LLMs used for extraction. Tracked for audit + per-model accuracy reporting."""
 
-    CLAUDE_SONNET_4_7 = "claude-sonnet-4-7"
+    CLAUDE_SONNET_4_6 = "claude-sonnet-4-6"
     MISTRAL_LARGE = "mistral-large-latest"
 
 

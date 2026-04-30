@@ -44,7 +44,7 @@ def test_valid_esrs_metric_validates() -> None:
             snippet="Total Scope 1 GHG emissions for FY2024 amounted to 147,500 tCO2e.",
         ),
         language=Language.EN,
-        extraction_model=ExtractionModel.CLAUDE_SONNET_4_7,
+        extraction_model=ExtractionModel.CLAUDE_SONNET_4_6,
     )
     assert metric.company_ticker == "MC.PA"
     assert metric.confidence_score == 0.92
@@ -69,7 +69,7 @@ def test_invalid_metric_rejects_both_values_populated() -> None:
                 snippet="A snippet at least twenty characters long.",
             ),
             language=Language.EN,
-            extraction_model=ExtractionModel.CLAUDE_SONNET_4_7,
+            extraction_model=ExtractionModel.CLAUDE_SONNET_4_6,
         )
 
 
@@ -90,7 +90,7 @@ def test_invalid_metric_rejects_neither_value() -> None:
                 snippet="A snippet at least twenty characters long.",
             ),
             language=Language.EN,
-            extraction_model=ExtractionModel.CLAUDE_SONNET_4_7,
+            extraction_model=ExtractionModel.CLAUDE_SONNET_4_6,
         )
 
 
@@ -118,5 +118,5 @@ def test_invalid_metric_rejects_out_of_range_confidence() -> None:
                 snippet="A snippet at least twenty characters long.",
             ),
             language=Language.EN,
-            extraction_model=ExtractionModel.CLAUDE_SONNET_4_7,
+            extraction_model=ExtractionModel.CLAUDE_SONNET_4_6,
         )

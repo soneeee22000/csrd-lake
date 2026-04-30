@@ -167,7 +167,7 @@ class ESRSMetric(BaseModel):
     source_page: int
     source_snippet: str  # ≥20 chars, must contain value
     language: str  # 'fr' | 'en'
-    extraction_model: str  # 'claude-sonnet-4-7' | 'mistral-large-latest'
+    extraction_model: str  # 'claude-sonnet-4-6' | 'mistral-large-latest'
 
 # Extraction always returns Pydantic-validated models, never raw dicts
 def extract_esrs_metrics(pdf_text: str, company: str) -> list[ESRSMetric]:
