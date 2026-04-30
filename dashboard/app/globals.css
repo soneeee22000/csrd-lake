@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* ── Design tokens ────────────────────────────────────────────────────
+   3 colors: 1 primary (forest, CSRD theme), 2 neutrals (background +
+   foreground), 1 muted, 2 accents (warning amber for low-confidence,
+   success green for published mart). Per global CLAUDE.md: never use
+   raw color classes (text-white, bg-black) in components — always tokens.
+*/
+
+@theme {
+  /* Brand */
+  --color-primary: oklch(0.42 0.1 165); /* deep forest */
+  --color-primary-foreground: oklch(0.98 0 0); /* near-white on primary */
+
+  /* Surfaces */
+  --color-background: oklch(0.99 0.005 100); /* warm near-white */
+  --color-foreground: oklch(0.2 0.01 250); /* near-black */
+
+  /* Muted / borders */
+  --color-muted: oklch(0.95 0.005 100);
+  --color-muted-foreground: oklch(0.5 0.01 250);
+  --color-border: oklch(0.9 0.005 100);
+
+  /* Confidence routing — semantic colors */
+  --color-confidence-published: oklch(0.55 0.13 150); /* green for >=0.80 */
+  --color-confidence-review: oklch(0.65 0.15 65); /* amber for <0.80 */
+
+  /* Typography */
+  --font-sans:
+    "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono: "Geist Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* ── Base layer ─────────────────────────────────────────────────────── */
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11"; /* nicer Geist glyphs */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Mobile-first input sizing per global CLAUDE.md */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  button {
+    min-height: 44px;
+  }
+
+  h1 {
+    font-size: 2.25rem; /* 36px */
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  code,
+  kbd,
+  pre {
+    font-family: var(--font-mono);
+  }
+}
+
+/* ── Utilities ──────────────────────────────────────────────────────── */
+
+@layer utilities {
+  .container-page {
+    max-width: 1100px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+    padding-block: 2.5rem;
+  }
+}
