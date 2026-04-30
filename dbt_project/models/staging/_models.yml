@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: stg_disclosure
+    description: |
+      Cleaned + deduplicated landing layer. One row per
+      (company_ticker, fiscal_year, esrs_disclosure, extraction_model)
+      tuple, with the latest extraction_timestamp winning on duplicates.
+      Fact tables read from here; raw is not joined directly downstream.
+    columns:
+      - name: company_ticker
+        description: "Yahoo-style ticker (e.g. 'MC.PA' for LVMH)."
+        tests:
+          - not_null
+      - name: fiscal_year
+        description: "Reporting fiscal year (FY2024 in v1)."
+        tests:
+          - not_null
+      - name: esrs_disclosure
+        description: "ESRS disclosure code."
+        tests:
+          - not_null
+      - name: extraction_model
+        description: "LLM identifier."
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - claude-sonnet-4-6
+                - mistral-large-latest
+      - name: confidence_score
+        description: "[0, 1] confidence; <0.80 routes to review queue downstream."
+        tests:
+          - not_null
+
+    tests:
+      # Composite uniqueness — natural key after dedupe.
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - company_ticker
+            - fiscal_year
+            - esrs_disclosure
+            - extraction_model

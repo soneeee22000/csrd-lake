@@ -1,0 +1,79 @@
+# CSRD-Lake dbt project configuration.
+#
+# Materialization strategy:
+#   staging  → views (cheap, always-fresh, lineage spine)
+#   marts    → tables (one snapshot per dbt run; dimensions are small enough to materialize)
+#   reporting marts (mart_*) → tables (used by the dashboard)
+#
+# Run order (manual, or as Airflow tasks): dbt seed → dbt run → dbt test → dbt docs generate
+#
+# Naming conventions:
+#   stg_<source>      — staging layer (1:1 with raw, light type cleanup)
+#   dim_<entity>      — dimension table
+#   fact_<process>    — fact table (transactional grain)
+#   mart_<purpose>    — reporting mart (denormalized for read patterns)
+
+name: csrd_lake
+version: 1.0.0
+config-version: 2
+
+profile: csrd_lake # matches profiles.yml entry
+
+# ── Path layout ──────────────────────────────────────────────────────
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+
+target-path: "target" # gitignored
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+# ── Model materialization ────────────────────────────────────────────
+models:
+  csrd_lake:
+    staging:
+      +materialized: view
+      +schema: STAGING
+
+    marts:
+      +materialized: table
+      +schema: MARTS
+
+# ── Seed config ──────────────────────────────────────────────────────
+# Seeds populate dim_company / dim_metric / dim_period before the marts
+# build their fact joins.
+seeds:
+  csrd_lake:
+    +schema: MARTS
+    companies_seed:
+      +column_types:
+        ticker: VARCHAR(10)
+        name: VARCHAR(100)
+        sector: VARCHAR(50)
+        country: VARCHAR(2)
+        ir_page_url: VARCHAR(500)
+        language: VARCHAR(2)
+    esrs_metrics_seed:
+      +column_types:
+        esrs_topic: VARCHAR(2)
+        esrs_disclosure: VARCHAR(20)
+        metric_name: VARCHAR(200)
+        unit: VARCHAR(50)
+    periods_seed:
+      +column_types:
+        fiscal_year: SMALLINT
+        period_start: DATE
+        period_end: DATE
+        reporting_basis: VARCHAR(20)
+
+# ── Variables ────────────────────────────────────────────────────────
+vars:
+  # Confidence threshold for routing to mart_disclosure_review_queue.
+  # Mirrors the env-var-driven Python value in the extraction layer.
+  confidence_threshold: 0.80
+  # Reporting year — wave-1 CSRD = FY2024.
+  default_fiscal_year: 2024

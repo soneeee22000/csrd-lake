@@ -1,0 +1,66 @@
+version: 2
+
+sources:
+  - name: raw
+    description: |
+      Raw landing zone written by the Python extraction pipeline.
+      See `src/csrd_lake/warehouse/loader.py` for the writer and
+      `src/csrd_lake/warehouse/ddl.sql` for the canonical schema.
+    database: "{{ env_var('SNOWFLAKE_DATABASE', 'CSRD_LAKE') }}"
+    schema: RAW
+    tables:
+      - name: disclosure_extracted
+        description: |
+          One row per LLM-extracted ESRS metric. The natural key is
+          (company_ticker, fiscal_year, esrs_disclosure, extraction_model);
+          duplicates from re-runs are de-duped in `stg_disclosure` by
+          picking the latest `extraction_timestamp`.
+        columns:
+          - name: company_ticker
+            description: "Yahoo-style ticker (e.g. 'MC.PA' for LVMH)."
+            tests:
+              - not_null
+          - name: fiscal_year
+            description: "Reporting fiscal year (CSRD wave-1 = 2024)."
+            tests:
+              - not_null
+          - name: esrs_topic
+            description: "ESRS topical standard: E1, E2, E3, S1, G1."
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ["E1", "E2", "E3", "S1", "G1"]
+          - name: esrs_disclosure
+            description: "ESRS disclosure code (e.g. 'E1-6', 'S1-9')."
+            tests:
+              - not_null
+          - name: confidence_score
+            description: "[0.000, 1.000] — values <0.80 route to review queue."
+            tests:
+              - not_null
+          - name: source_page
+            description: "1-indexed page in the source PDF."
+            tests:
+              - not_null
+          - name: source_snippet
+            description: "Verbatim text from PDF supporting the value (≥20 chars)."
+            tests:
+              - not_null
+          - name: language
+            description: "ISO-639-1 language code: 'fr' or 'en' in v1."
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ["fr", "en"]
+          - name: extraction_model
+            description: "LLM identifier (claude-sonnet-4-6 or mistral-large-latest)."
+            tests:
+              - not_null
+              - accepted_values:
+                  values:
+                    - claude-sonnet-4-6
+                    - mistral-large-latest
+          - name: extraction_timestamp
+            description: "When the LLM produced this metric (UTC)."
+            tests:
+              - not_null

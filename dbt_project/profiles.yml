@@ -1,0 +1,41 @@
+# dbt profiles for CSRD-Lake.
+#
+# Reads Snowflake credentials from environment variables (matches
+# .env.example at the project root). NEVER commit a profiles.yml with
+# inline credentials — env-only.
+#
+# Local dev: `cp .env.example .env`, fill in values, then `set -a; source .env; set +a; dbt run`.
+# CI / Airflow: the orchestration layer exports the same SNOWFLAKE_* vars.
+#
+# To use a different profiles location, set DBT_PROFILES_DIR.
+
+csrd_lake:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'CSRD_LAKE') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'STAGING') }}"
+      threads: 4
+      client_session_keep_alive: false
+      query_tag: "csrd_lake"
+
+    ci:
+      # CI target — use a separate database to keep runs isolated.
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE_CI', 'CSRD_LAKE_CI') }}"
+      schema: "STAGING"
+      threads: 1
+      client_session_keep_alive: false
+      query_tag: "csrd_lake_ci"

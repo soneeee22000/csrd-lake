@@ -1,0 +1,11 @@
+# dbt package dependencies.
+#
+# `dbt_utils` provides the `generate_surrogate_key`, `unique_combination_of_columns`,
+# and `expression_is_true` macros used across the marts.
+#
+# Pin to a known-good version to avoid silent breaking changes; dbt-core
+# itself is pinned in pyproject.toml.
+
+packages:
+  - package: dbt-labs/dbt_utils
+    version: ">=1.3.0,<2.0.0"

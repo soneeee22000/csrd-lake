@@ -1,0 +1,20 @@
+esrs_topic,esrs_disclosure,metric_name,unit
+E1,E1-6,Total Scope 1 GHG emissions,tCO2e
+E1,E1-6,Total Scope 2 GHG emissions (market-based),tCO2e
+E1,E1-6,Total Scope 2 GHG emissions (location-based),tCO2e
+E1,E1-6,Total Scope 3 GHG emissions,tCO2e
+E1,E1-5,Total energy consumption,MWh
+E1,E1-5,Renewable share of total energy consumption,%
+E1,E1-1,Climate transition plan disclosed,boolean
+E1,E1-2,Net-zero target year,year
+E2,E2-4,Total air pollutant emissions,tonnes
+E2,E2-5,Use of substances of concern,tonnes
+E3,E3-4,Total water consumption,m3
+E3,E3-4,Water withdrawal in water-stressed areas,m3
+S1,S1-6,Total employees (headcount),count
+S1,S1-9,% women in top management,%
+S1,S1-14,Number of recordable work-related injuries,count
+S1,S1-14,Number of fatalities from work-related injuries,count
+S1,S1-16,Gender pay gap (median),%
+G1,G1-3,Confirmed incidents of corruption or bribery,count
+G1,G1-1,Business-conduct policy disclosed,boolean

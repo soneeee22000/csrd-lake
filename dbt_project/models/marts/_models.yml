@@ -1,0 +1,124 @@
+version: 2
+
+models:
+  # ── Dimensions ───────────────────────────────────────────────────────
+  - name: dim_company
+    description: "One row per company in the manifest. Surrogate key joined from facts."
+    columns:
+      - name: company_id
+        description: "Surrogate key (md5 of ticker)."
+        tests:
+          - unique
+          - not_null
+      - name: ticker
+        description: "Natural key — Yahoo-style ticker."
+        tests:
+          - unique
+          - not_null
+      - name: country
+        tests:
+          - accepted_values:
+              values: ["FR"] # v1 = CAC 40 only
+      - name: language
+        tests:
+          - accepted_values:
+              values: ["fr", "en"]
+
+  - name: dim_metric
+    description: "ESRS metric catalog. Composite natural key (esrs_disclosure, metric_name)."
+    columns:
+      - name: metric_id
+        tests:
+          - unique
+          - not_null
+      - name: esrs_topic
+        tests:
+          - accepted_values:
+              values: ["E1", "E2", "E3", "S1", "G1"]
+      - name: esrs_disclosure
+        tests:
+          - not_null
+
+  - name: dim_period
+    description: "Reporting fiscal year. v1 has FY2024 only."
+    columns:
+      - name: period_id
+        tests:
+          - unique
+          - not_null
+      - name: fiscal_year
+        tests:
+          - unique
+          - not_null
+
+  # ── Fact ─────────────────────────────────────────────────────────────
+  - name: fact_disclosure
+    description: |
+      Canonical disclosure fact table. One row per
+      (company, metric, period, extraction_model). Joins the cleaned
+      staging layer to the three dimensions; preserves audit columns.
+    columns:
+      - name: disclosure_id
+        description: "Surrogate key (md5 of natural key)."
+        tests:
+          - unique
+          - not_null
+      - name: company_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_company')
+              field: company_id
+      - name: metric_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_metric')
+              field: metric_id
+      - name: period_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_period')
+              field: period_id
+      - name: confidence_score
+        description: "[0, 1] — routes to review queue if < confidence_threshold."
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0 and confidence_score <= 1"
+      - name: source_snippet
+        description: "Verbatim PDF text supporting the value. ≥20 chars."
+        tests:
+          - not_null
+
+  # ── Reporting marts ──────────────────────────────────────────────────
+  - name: mart_disclosure_published
+    description: |
+      The published mart — confidence ≥ threshold OR human_approved=true.
+      The Next.js dashboard reads `/company/[ticker]` and `/portfolio` from here.
+    columns:
+      - name: disclosure_id
+        tests:
+          - unique
+          - not_null
+      - name: confidence_score
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0.80 or fact_disclosure.human_approved = true"
+              # Note: published mart filter is in the model SQL; this is
+              # belt-and-braces for catching pipeline regressions.
+
+  - name: mart_disclosure_review_queue
+    description: |
+      Human-review queue — confidence < threshold and not yet approved.
+      Same shape as `mart_disclosure_published`; dashboard can swap views.
+    columns:
+      - name: disclosure_id
+        tests:
+          - unique
+          - not_null
+      - name: human_approved
+        tests:
+          - accepted_values:
+              values: [false]

@@ -1,0 +1,11 @@
+ticker,name,sector,country,ir_page_url,language
+MC.PA,LVMH,Luxury,FR,https://www.lvmh.com/investors/,fr
+TTE.PA,TotalEnergies,Energy,FR,https://totalenergies.com/investors,fr
+BNP.PA,BNP Paribas,Banking,FR,https://invest.bnpparibas/,fr
+SAN.PA,Sanofi,Pharma,FR,https://www.sanofi.com/en/investors,en
+CS.PA,AXA,Insurance,FR,https://www.axa.com/en/investor,en
+ORA.PA,Orange,Telecom,FR,https://gallery.orange.com/investors,fr
+OR.PA,L'Oreal,Consumer,FR,https://www.loreal-finance.com/en,en
+SU.PA,Schneider Electric,Industrial,FR,https://www.se.com/ww/en/about-us/investors/,en
+AI.PA,Air Liquide,Chemicals,FR,https://www.airliquide.com/investors,en
+SGO.PA,Saint-Gobain,Building Materials,FR,https://www.saint-gobain.com/en/finance,en
