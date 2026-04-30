@@ -1,0 +1,108 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtualenvs
+.venv/
+venv/
+env/
+ENV/
+
+# uv
+uv.lock
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Next.js (dashboard/)
+node_modules/
+.next/
+out/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/.user.yml
+
+# Airflow
+airflow/logs/
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/standalone_admin_password.txt
+airflow/webserver_config.py
+
+# Data (raw PDFs and intermediates — too large for git)
+data/raw/
+data/staging/
+data/intermediate/
+# Keep a small samples/ directory in git for reproducibility
+!data/samples/
+
+# Gold set may contain sensitive intermediate work — selective commit
+data/gold-set/*.private.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# AI tool artifacts (per global CLAUDE.md — purge before push)
+.claude/
+.sixth/
+.cursor/
+.codex/
+.copilot/
+*.ai-trace
+*.cursor-trace
+
+# Secrets — extra paranoia
+*.pem
+*.key
+*.p12
+*credentials*.json
+*service-account*.json
