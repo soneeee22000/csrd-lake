@@ -4,13 +4,34 @@
 >
 > Same architectural pattern Capgemini's Sustainability Data Hub and PwC's ESG Reporting Manager deploy at French banks today, built solo as a portfolio piece.
 
+**Live dashboard:** [csrd-lake.vercel.app](https://csrd-lake.vercel.app) · **Source:** [github.com/soneeee22000/csrd-lake](https://github.com/soneeee22000/csrd-lake)
+
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 ![dbt 1.9](https://img.shields.io/badge/dbt-1.9-orange.svg)
 ![Airflow 2.10](https://img.shields.io/badge/airflow-2.10-red.svg)
 ![Snowflake](https://img.shields.io/badge/snowflake-ready-blue.svg)
+![Next.js 16](https://img.shields.io/badge/next.js-16-black.svg)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-115%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-158%20passing-brightgreen.svg)
 ![Coverage](https://img.shields.io/badge/coverage-91.81%25-brightgreen.svg)
+
+---
+
+## Live dashboard
+
+Three pages, all server-rendered, all pre-built at deploy time:
+
+| Page                                                                                                     | Live URL                                                                                                                      | Screenshot                                                        |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Home** — manifest of 10 CAC 40 companies                                                               | [csrd-lake.vercel.app](https://csrd-lake.vercel.app)                                                                          | [home.png](dashboard/public/screenshots/home.png)                 |
+| **Per-company ESG profile** — metrics grouped by ESRS topic, confidence routing badges, source citations | [/company/MC.PA](https://csrd-lake.vercel.app/company/MC.PA) · [/company/TTE.PA](https://csrd-lake.vercel.app/company/TTE.PA) | [company-lvmh.png](dashboard/public/screenshots/company-lvmh.png) |
+| **Portfolio rollup** — synthetic 10-corporate loan-book, total exposure, weighted intensity              | [/portfolio](https://csrd-lake.vercel.app/portfolio)                                                                          | [portfolio.png](dashboard/public/screenshots/portfolio.png)       |
+
+![CSRD-Lake home page](dashboard/public/screenshots/home.png)
+
+![Per-company ESG profile (LVMH)](dashboard/public/screenshots/company-lvmh.png)
+
+![Portfolio rollup](dashboard/public/screenshots/portfolio.png)
 
 ---
 
