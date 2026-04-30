@@ -1,0 +1,87 @@
+# CAC 40 starter manifest — 10 companies for CSRD-Lake v1.
+#
+# Each entry must have: ticker, name, sector, country (ISO-2), ir_page_url, language.
+# `known_report_url` is optional — the ingestion DAG scrapes ir_page_url when absent.
+#
+# Selection criteria: strong CSRD/ESRS disclosure history, public IR pages, FR primary.
+# DAX 40 + IBEX 35 manifests deferred to v2 (PRD §8).
+
+[[companies]]
+ticker = "MC.PA"
+name = "LVMH"
+sector = "Luxury"
+country = "FR"
+ir_page_url = "https://www.lvmh.com/investors/"
+language = "fr"
+
+[[companies]]
+ticker = "TTE.PA"
+name = "TotalEnergies"
+sector = "Energy"
+country = "FR"
+ir_page_url = "https://totalenergies.com/investors"
+language = "fr"
+
+[[companies]]
+ticker = "BNP.PA"
+name = "BNP Paribas"
+sector = "Banking"
+country = "FR"
+ir_page_url = "https://invest.bnpparibas/"
+language = "fr"
+
+[[companies]]
+ticker = "SAN.PA"
+name = "Sanofi"
+sector = "Pharma"
+country = "FR"
+ir_page_url = "https://www.sanofi.com/en/investors"
+language = "en"
+
+[[companies]]
+ticker = "CS.PA"
+name = "AXA"
+sector = "Insurance"
+country = "FR"
+ir_page_url = "https://www.axa.com/en/investor"
+language = "en"
+
+[[companies]]
+ticker = "ORA.PA"
+name = "Orange"
+sector = "Telecom"
+country = "FR"
+ir_page_url = "https://gallery.orange.com/investors"
+language = "fr"
+
+[[companies]]
+ticker = "OR.PA"
+name = "L'Oreal"
+sector = "Consumer"
+country = "FR"
+ir_page_url = "https://www.loreal-finance.com/en"
+language = "en"
+
+[[companies]]
+ticker = "SU.PA"
+name = "Schneider Electric"
+sector = "Industrial"
+country = "FR"
+ir_page_url = "https://www.se.com/ww/en/about-us/investors/"
+language = "en"
+
+[[companies]]
+ticker = "AI.PA"
+name = "Air Liquide"
+sector = "Chemicals"
+country = "FR"
+ir_page_url = "https://www.airliquide.com/investors"
+language = "en"
+
+[[companies]]
+ticker = "SGO.PA"
+name = "Saint-Gobain"
+sector = "Building Materials"
+country = "FR"
+ir_page_url = "https://www.saint-gobain.com/en/finance"
+language = "en"
