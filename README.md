@@ -8,14 +8,16 @@
 
 ![CSRD-Lake dashboard walkthrough — home → per-company ESG profile → portfolio rollup](dashboard/public/screenshots/csrd-lake-dashboard.gif)
 
+[![CI](https://github.com/soneeee22000/csrd-lake/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/soneeee22000/csrd-lake/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 ![dbt 1.9](https://img.shields.io/badge/dbt-1.9-orange.svg)
 ![Airflow 2.10](https://img.shields.io/badge/airflow-2.10-red.svg)
 ![Snowflake](https://img.shields.io/badge/snowflake-ready-blue.svg)
 ![Next.js 16](https://img.shields.io/badge/next.js-16-black.svg)
-![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-158%20passing-brightgreen.svg)
 ![Coverage](https://img.shields.io/badge/coverage-91.81%25-brightgreen.svg)
+![Last commit](https://img.shields.io/github/last-commit/soneeee22000/csrd-lake/main)
 
 ---
 
@@ -65,31 +67,27 @@ CSRD-Lake demonstrates that pattern end-to-end as a single open-source reference
 
 ## Architecture
 
-```
-CAC 40 / DAX 40 IR pages
-        │
-        ▼  Airflow ingest_pdfs DAG (httpx + tenacity, idempotent, atomic writes)
-   /data/raw/*.pdf
-        │
-        ▼  Airflow extract_esrs DAG (mapped per company × ESRS topic)
-Claude Sonnet 4.6 API + Pydantic ESRS schemas
-        │   (with Mistral Large fallback + per-metric confidence + source citation)
-        ▼
- Snowflake raw.disclosure_extracted   ← Python warehouse loader (parameterized executemany)
-        │
-        ▼  dbt run + dbt test
- Snowflake staging.stg_disclosure     ← view, dedupes on natural key
-        │
-        ▼  dbt model (joins to dimensions)
- Snowflake marts.fact_disclosure
-        │   (joined to dim_company / dim_metric / dim_period via surrogate keys)
-        ├─► confidence < 0.80 → marts.mart_disclosure_review_queue   ← human-review surface
-        │
-        └─► confidence ≥ 0.80 → marts.mart_disclosure_published      ← dashboard backend
-                                        │
-                                        ▼
-                            Next.js 16 dashboard on Vercel
-                            (per-company + portfolio rollup)
+```mermaid
+flowchart TD
+    A[CAC 40 / DAX 40<br/>IR pages] -->|httpx + tenacity<br/>idempotent + atomic| B[/data/raw/*.pdf/]
+    B -->|Airflow ingest_pdfs DAG<br/>mapped per company| C[Pydantic ESRSMetric<br/>schemas]
+    C -->|Claude Sonnet 4.6<br/>tool-use API| D{Extraction<br/>valid?}
+    D -->|no| F[Mistral Large<br/>fallback]
+    F --> E
+    D -->|yes| E[per-metric confidence<br/>+ source citation]
+    E -->|warehouse loader<br/>parameterized executemany| G[(Snowflake<br/>RAW.DISCLOSURE_EXTRACTED)]
+    G -->|dbt staging<br/>view, dedupe on natural key| H[(staging.stg_disclosure)]
+    H -->|dbt model<br/>joins to dimensions| I[(marts.fact_disclosure)]
+    I -->|confidence ≥ 0.80| K[(mart_disclosure_published)<br/>dashboard backend]
+    I -->|confidence < 0.80| J[(mart_disclosure_review_queue)<br/>human review surface]
+    K --> L[Next.js 16 dashboard<br/>csrd-lake.vercel.app]
+
+    classDef published fill:#d1fae5,stroke:#065f46,color:#000
+    classDef review fill:#fef3c7,stroke:#92400e,color:#000
+    classDef warehouse fill:#dbeafe,stroke:#1e40af,color:#000
+    class K published
+    class J review
+    class G,H,I warehouse
 ```
 
 See [`docs/PRD.md`](docs/PRD.md) for full requirements, edge-case handling, and quality gates.
@@ -122,6 +120,49 @@ See [`docs/PRD.md`](docs/PRD.md) for full requirements, edge-case handling, and 
 | HTTP              | `httpx` + `tenacity`                                                                               | Retry-aware async-ready downloader                                                   |
 | Tests             | `pytest` + dbt tests (`not_null`, `unique`, `accepted_values`, `relationships`, custom data tests) | Pyramid + data-quality                                                               |
 | CI                | **GitHub Actions** (lint + mypy + pytest + dbt parse)                                              | Quality gates enforced pre-merge                                                     |
+
+```mermaid
+mindmap
+  root((CSRD-Lake))
+    Orchestration
+      Apache Airflow 2.10
+      Docker Compose
+      TaskFlow API
+      Dynamic task mapping
+    Extraction
+      Claude Sonnet 4.6
+      Mistral Large
+      Pydantic v2
+      Structured outputs
+    Ingestion
+      httpx + tenacity
+      pdfplumber + pypdf
+      TOML manifest
+      Magic-byte validation
+    Warehouse
+      Snowflake
+      Star schema
+      Parameterized executemany
+    Transformation
+      dbt-core 1.9
+      dbt-snowflake
+      dbt_utils
+      Custom data tests
+    Dashboard
+      Next.js 16
+      React 19
+      Tailwind v4
+      Server Components
+    Quality
+      pytest 158 cases
+      ruff + mypy strict
+      91.81% coverage
+      Anti-regression tests
+    CI/CD
+      GitHub Actions
+      Vercel
+      Conventional commits
+```
 
 ## Quickstart
 
@@ -176,7 +217,7 @@ csrd-lake/
 │   │                        mart_disclosure_published, mart_disclosure_review_queue
 │   ├── tests/               metric-value-in-source, confidence-in-[0,1], disjoint
 │   └── seeds/               companies, ESRS metrics, periods
-├── tests/                   115 pytest cases (mirrors src/, AST-tests for DAG + dbt)
+├── tests/                   158 pytest cases (mirrors src/, AST-tests for DAG + dbt + dashboard)
 ├── docs/
 │   ├── PRD.md               Source of truth for requirements
 │   └── PORTABILITY.md       Snowflake↔Synapse, Airflow↔ADF, Claude↔Azure OpenAI
@@ -210,9 +251,11 @@ This pipeline is built on Snowflake + Airflow + Claude. The architectural patter
 
 See [`docs/PORTABILITY.md`](docs/PORTABILITY.md) for the detailed mapping with bank-stack-specific notes.
 
-## Loom walkthrough
+## Demo
 
-🎥 _Coming in v1.1 — 90-second walkthrough showing the live Snowflake schema, dbt lineage graph, and a sample LLM extraction with source citation._
+The animated walkthrough at the top of this README shows home → per-company ESG profile → portfolio rollup. Static screenshots of each page are in [`dashboard/public/screenshots/`](dashboard/public/screenshots/).
+
+A 90-second narrated Loom walkthrough showing the live Snowflake schema, dbt lineage graph, and a sample LLM extraction is planned for v1.1 (after the gold-set hand-verification adds defensible per-metric accuracy numbers).
 
 ## License
 
