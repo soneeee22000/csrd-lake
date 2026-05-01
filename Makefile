@@ -1,4 +1,10 @@
-.PHONY: help setup services stop lint format test smoke ci extract dbt-run dbt-test demo clean
+.PHONY: help setup services stop lint format test smoke ci verify-llm dbt-run dbt-test demo clean
+
+# Defaults for `make verify-llm` — override on the command line:
+#   make verify-llm PDF=data/samples/lvmh-2024.pdf TICKER=MC.PA TOPIC=E1
+PDF ?= data/samples/sample.pdf
+TICKER ?= MC.PA
+TOPIC ?= E1
 
 help:  ## Show this help
 	@echo "CSRD-Lake — Makefile commands"
@@ -35,8 +41,10 @@ ci:  ## Everything CI runs
 	$(MAKE) test
 
 # ── Pipeline ─────────────────────────────────────────────────────────
-extract:  ## Run extraction pipeline against sample PDFs
-	uv run python -m csrd_lake.extraction.cli --input data/samples --output data/staging
+verify-llm:  ## Real-LLM smoke test: extract one PDF via Claude+Mistral. PDF=path TICKER=MC.PA TOPIC=E1
+	@test -f .env || (echo "  ✗ .env missing — copy .env.example, fill in ANTHROPIC_API_KEY + MISTRAL_API_KEY" && exit 1)
+	@test -f $(PDF) || (echo "  ✗ PDF not found at $(PDF) — pass PDF=path/to/your.pdf" && exit 1)
+	uv run python -m csrd_lake.extraction.cli --pdf $(PDF) --ticker $(TICKER) --topic $(TOPIC)
 
 dbt-run:  ## Run dbt models
 	cd dbt_project && uv run dbt run --target dev

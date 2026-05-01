@@ -98,7 +98,7 @@ See [`docs/PRD.md`](docs/PRD.md) for full requirements, edge-case handling, and 
 
 | Claim                                                                                                                    | Test condition                                                                                                                                                                                                               | How to verify                                        |
 | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| **115 tests passing at 91.81% coverage**                                                                                 | pytest with `--cov-fail-under=70`, branch coverage enabled, full suite                                                                                                                                                       | `make test`                                          |
+| **158 tests passing at 91.81% coverage**                                                                                 | pytest with `--cov-fail-under=70`, branch coverage enabled, full suite                                                                                                                                                       | `make test`                                          |
 | **7 layered modules** ingestion / extraction / warehouse / orchestration / dbt staging / dbt marts / dbt reporting marts | One Python package per layer; one Airflow DAG composes them                                                                                                                                                                  | `tree src/csrd_lake airflow dbt_project/models`      |
 | **10 CAC 40 companies, 19 ESRS metrics, 5 ESRS topics** (E1, E2, E3, S1, G1)                                             | Manifest + catalog mirrored between Python (`prompts.py`) and dbt seeds (`esrs_metrics_seed.csv`); structural test enforces parity                                                                                           | `pytest tests/test_dbt_project_structure.py -k seed` |
 | **3 custom dbt data-quality tests**                                                                                      | metric-value-in-source / confidence-in-[0,1] / published-and-review-queue-disjoint                                                                                                                                           | `dbt test --select test_type:data`                   |
@@ -115,7 +115,7 @@ See [`docs/PRD.md`](docs/PRD.md) for full requirements, edge-case handling, and 
 | Schema validation | **Pydantic v2**                                                                                    | Type-safe LLM output validation at the boundary                                      |
 | Warehouse         | **Snowflake** (free-trial-ready; DuckDB fallback documented)                                       | Modern data stack canonical; dbt-snowflake adapter                                   |
 | Transformations   | **dbt-core 1.9** with `dbt-snowflake` and `dbt_utils`                                              | Lineage + tests + docs out of the box                                                |
-| Dashboard         | **Next.js 16** (Vercel deploy-ready)                                                               | _Coming in v1.1_                                                                     |
+| Dashboard         | **Next.js 16** + Tailwind v4 (live at csrd-lake.vercel.app)                                        | Server Components, pre-rendered, design-token discipline                             |
 | PDF parsing       | `pdfplumber` + `pypdf`                                                                             | Text extraction from sustainability PDFs                                             |
 | HTTP              | `httpx` + `tenacity`                                                                               | Retry-aware async-ready downloader                                                   |
 | Tests             | `pytest` + dbt tests (`not_null`, `unique`, `accepted_values`, `relationships`, custom data tests) | Pyramid + data-quality                                                               |
@@ -139,13 +139,20 @@ cp .env.example .env
 make smoke       # pytest -m smoke -v
 make ci          # full lint + mypy + test suite
 
-# 4. Bootstrap the warehouse
+# 4. Real-LLM extraction smoke test (~$0.10 per run)
+#    Drop one CAC 40 sustainability PDF in data/samples/ first.
+make verify-llm PDF=data/samples/lvmh-2024.pdf TICKER=MC.PA TOPIC=E1
+# → prints every extracted ESRSMetric with confidence, source citation, routing
+# → on Windows without `make`:
+#    uv run python -m csrd_lake.extraction.cli --pdf data/samples/lvmh-2024.pdf --ticker MC.PA --topic E1
+
+# 5. Bootstrap the warehouse
 snowsql -f src/csrd_lake/warehouse/ddl.sql
 
-# 5. Start Airflow + Postgres metadata
+# 6. Start Airflow + Postgres metadata
 make services
 
-# 6. Run the demo
+# 7. Run the demo
 make demo
 # → opens Airflow UI at http://localhost:8080 (login: airflow/airflow)
 # → triggers ingest_pdfs → extract_esrs → load_to_snowflake → dbt run/test
