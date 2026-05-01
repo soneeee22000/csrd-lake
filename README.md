@@ -6,6 +6,8 @@
 
 **Live dashboard:** [csrd-lake.vercel.app](https://csrd-lake.vercel.app) · **Source:** [github.com/soneeee22000/csrd-lake](https://github.com/soneeee22000/csrd-lake)
 
+![CSRD-Lake dashboard walkthrough — home → per-company ESG profile → portfolio rollup](dashboard/public/screenshots/csrd-lake-dashboard.gif)
+
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 ![dbt 1.9](https://img.shields.io/badge/dbt-1.9-orange.svg)
 ![Airflow 2.10](https://img.shields.io/badge/airflow-2.10-red.svg)
