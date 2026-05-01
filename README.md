@@ -69,18 +69,18 @@ CSRD-Lake demonstrates that pattern end-to-end as a single open-source reference
 
 ```mermaid
 flowchart TD
-    A[CAC 40 / DAX 40<br/>IR pages] -->|httpx + tenacity<br/>idempotent + atomic| B[/data/raw/*.pdf/]
-    B -->|Airflow ingest_pdfs DAG<br/>mapped per company| C[Pydantic ESRSMetric<br/>schemas]
-    C -->|Claude Sonnet 4.6<br/>tool-use API| D{Extraction<br/>valid?}
-    D -->|no| F[Mistral Large<br/>fallback]
+    A["CAC 40 / DAX 40<br/>IR pages"] -->|"httpx + tenacity<br/>idempotent + atomic"| B["Raw PDFs on disk"]
+    B -->|"Airflow ingest_pdfs DAG<br/>mapped per company"| C["Pydantic ESRSMetric<br/>schemas"]
+    C -->|"Claude Sonnet 4.6<br/>tool-use API"| D{"Extraction<br/>valid?"}
+    D -->|"no"| F["Mistral Large<br/>fallback"]
+    D -->|"yes"| E["Per-metric confidence<br/>+ source citation"]
     F --> E
-    D -->|yes| E[per-metric confidence<br/>+ source citation]
-    E -->|warehouse loader<br/>parameterized executemany| G[(Snowflake<br/>RAW.DISCLOSURE_EXTRACTED)]
-    G -->|dbt staging<br/>view, dedupe on natural key| H[(staging.stg_disclosure)]
-    H -->|dbt model<br/>joins to dimensions| I[(marts.fact_disclosure)]
-    I -->|confidence ≥ 0.80| K[(mart_disclosure_published)<br/>dashboard backend]
-    I -->|confidence < 0.80| J[(mart_disclosure_review_queue)<br/>human review surface]
-    K --> L[Next.js 16 dashboard<br/>csrd-lake.vercel.app]
+    E -->|"warehouse loader<br/>parameterized executemany"| G[("Snowflake<br/>RAW.DISCLOSURE_EXTRACTED")]
+    G -->|"dbt staging view<br/>dedupe on natural key"| H[("staging.stg_disclosure")]
+    H -->|"dbt model<br/>joins to dimensions"| I[("marts.fact_disclosure")]
+    I -->|"confidence &ge; 0.80"| K[("mart_disclosure_published<br/>dashboard backend")]
+    I -->|"confidence &lt; 0.80"| J[("mart_disclosure_review_queue<br/>human review surface")]
+    K --> L["Next.js 16 dashboard<br/>csrd-lake.vercel.app"]
 
     classDef published fill:#d1fae5,stroke:#065f46,color:#000
     classDef review fill:#fef3c7,stroke:#92400e,color:#000
