@@ -27,8 +27,8 @@ venv/
 env/
 ENV/
 
-# uv
-uv.lock
+# uv lockfile is committed for deterministic CI builds (this is an
+# application, not a library — applications pin transitive deps).
 
 # Testing
 .pytest_cache/
