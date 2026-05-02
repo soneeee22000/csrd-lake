@@ -87,7 +87,7 @@ export default function RootLayout({
                 target="_blank"
                 rel="noreferrer"
               >
-                Pyae Sone Kyaw
+                Pyae Sone Kyaw (Seon)
               </a>
             </span>
           </div>

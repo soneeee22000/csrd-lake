@@ -1,22 +1,23 @@
 # CSRD-Lake
 
-> **End-to-end CSRD/ESRS data pipeline reference implementation** — Snowflake star schema + dbt models + Airflow orchestration + multilingual GenAI extraction with source citation and audit lineage.
+> **End-to-end CSRD/ESRS data pipeline reference implementation** — Snowflake (validated) + DuckDB local + dbt star schema + Airflow orchestration + Claude/Mistral GenAI extraction with page-level audit lineage.
 >
-> Same architectural pattern Capgemini's Sustainability Data Hub and PwC's ESG Reporting Manager deploy at French banks today, built solo as a portfolio piece.
+> Same architectural pattern Capgemini's Sustainability Data Hub and PwC's ESG Reporting Manager deploy at French banks today — built solo as an open-source reference implementation.
 
-**Live dashboard:** [csrd-lake.vercel.app](https://csrd-lake.vercel.app) · **Source:** [github.com/soneeee22000/csrd-lake](https://github.com/soneeee22000/csrd-lake)
+**Live dashboard:** [csrd-lake.vercel.app](https://csrd-lake.vercel.app) · **Source:** [github.com/soneeee22000/csrd-lake](https://github.com/soneeee22000/csrd-lake) · **Project context:** [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md)
 
 ![CSRD-Lake dashboard walkthrough — home → per-company ESG profile → portfolio rollup](dashboard/public/screenshots/csrd-lake-dashboard.gif)
 
 [![CI](https://github.com/soneeee22000/csrd-lake/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/soneeee22000/csrd-lake/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
-![dbt 1.9](https://img.shields.io/badge/dbt-1.9-orange.svg)
+![dbt 1.11](https://img.shields.io/badge/dbt-1.11-orange.svg)
+![Snowflake validated](https://img.shields.io/badge/snowflake-validated-blue.svg)
+![DuckDB local](https://img.shields.io/badge/duckdb-local-fff000.svg)
 ![Airflow 2.10](https://img.shields.io/badge/airflow-2.10-red.svg)
-![Snowflake](https://img.shields.io/badge/snowflake-ready-blue.svg)
 ![Next.js 16](https://img.shields.io/badge/next.js-16-black.svg)
-![Tests](https://img.shields.io/badge/tests-158%20passing-brightgreen.svg)
-![Coverage](https://img.shields.io/badge/coverage-91.81%25-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-168%20passing-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen.svg)
 ![Last commit](https://img.shields.io/github/last-commit/soneeee22000/csrd-lake/main)
 
 ---
@@ -266,7 +267,7 @@ MIT — see [`LICENSE`](LICENSE).
 
 ## Author
 
-Built by [**Pyae Sone Kyaw**](https://pseonkyaw.dev) — Cloud Data Engineer, Data Science, AI. Available for freelance subcontract missions in Paris (auto-entrepreneur, SIRET registered).
+Built by [**Pyae Sone Kyaw (Seon)**](https://pseonkyaw.dev) — Cloud Data Engineer, Data Science, AI. Available for freelance subcontract missions in Paris (auto-entrepreneur, SIRET registered).
 
 - LinkedIn: [pyae-sone-kyaw](https://linkedin.com/in/pyae-sone-kyaw)
 - GitHub: [@soneeee22000](https://github.com/soneeee22000)
