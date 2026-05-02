@@ -16,6 +16,15 @@ import yaml
 
 DBT_ROOT = Path(__file__).resolve().parents[1] / "dbt_project"
 
+# Vendored dbt packages and dbt build artifacts contain SQL/YAML that this
+# project does not own. Exclude them from structural assertions.
+_EXCLUDED_DIRS = ("dbt_packages", "target", "logs")
+
+
+def _is_owned(path: Path) -> bool:
+    parts = path.relative_to(DBT_ROOT).parts
+    return not any(p in _EXCLUDED_DIRS for p in parts)
+
 
 # ── File presence ─────────────────────────────────────────────────────
 
@@ -42,7 +51,7 @@ def test_required_directories_exist() -> None:
 
 
 def _yaml_files() -> list[Path]:
-    return sorted(DBT_ROOT.rglob("*.yml"))
+    return sorted(p for p in DBT_ROOT.rglob("*.yml") if _is_owned(p))
 
 
 @pytest.mark.parametrize(
@@ -78,7 +87,7 @@ def test_confidence_threshold_var_matches_python() -> None:
 
 
 def _sql_files() -> list[Path]:
-    return sorted(DBT_ROOT.rglob("*.sql"))
+    return sorted(p for p in DBT_ROOT.rglob("*.sql") if _is_owned(p))
 
 
 @pytest.mark.parametrize(

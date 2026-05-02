@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
+import anthropic
 import structlog
 from pydantic import ValidationError
 
@@ -24,6 +25,7 @@ from csrd_lake.extraction.confidence import compute_confidence
 from csrd_lake.extraction.prompts import (
     EXTRACTION_TOOL_SCHEMA,
     build_extraction_prompt,
+    parent_disclosure_code,
 )
 from csrd_lake.extraction.schemas import (
     ESRSMetric,
@@ -103,7 +105,7 @@ def extract_esrs_metrics(
             count=len(metrics),
         )
         return metrics
-    except (RuntimeError, ValidationError, ValueError, KeyError) as exc:
+    except (RuntimeError, ValidationError, ValueError, KeyError, anthropic.APIError) as exc:
         logger.warning(
             "extraction.claude.failed",
             company=company.ticker,
@@ -129,7 +131,11 @@ def extract_esrs_metrics(
             count=len(metrics),
         )
         return metrics
-    except (RuntimeError, ValidationError, ValueError, KeyError) as exc:
+    except Exception as exc:
+        # Catch broad on the *fallback* path: Mistral SDK error class lives at
+        # mistralai.client.errors.sdkerror.SDKError but the import surface is
+        # unstable across versions. We log + raise ExtractionError so the
+        # caller can record the per-topic failure without crashing the batch.
         logger.error(
             "extraction.mistral.failed",
             company=company.ticker,
@@ -256,7 +262,7 @@ def _build_metrics(
             company_ticker=company.ticker,
             fiscal_year=fiscal_year,
             esrs_topic=esrs_topic,
-            esrs_disclosure=str(item["esrs_disclosure"]),
+            esrs_disclosure=parent_disclosure_code(str(item["esrs_disclosure"])),
             metric_name=str(item["metric_name"]),
             value_numeric=float(value_numeric) if value_numeric is not None else None,
             value_text=str(value_text) if value_text is not None else None,

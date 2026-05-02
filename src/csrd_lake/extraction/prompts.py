@@ -149,6 +149,17 @@ EXTRACTION_TOOL_SCHEMA: dict[str, object] = {
 }
 
 
+def parent_disclosure_code(metric_id: str) -> str:
+    """Strip any dotted suffix from a catalog ID, leaving the parent ESRS code.
+
+    Catalog IDs may carry an internal sub-key (e.g. 'E1-6.scope_2_location')
+    to disambiguate metrics that share the same disclosure (Scope 2 market vs
+    location are both under E1-6). The warehouse and dim_metric only model the
+    canonical parent code — disambiguation lives in metric_name.
+    """
+    return metric_id.split(".", 1)[0]
+
+
 def build_extraction_prompt(
     pdf_text: str,
     company_name: str,
@@ -158,7 +169,9 @@ def build_extraction_prompt(
 ) -> str:
     """Render the extraction prompt for one ESRS topic on one company chunk."""
     catalog = ESRS_METRIC_CATALOG.get(esrs_topic, [])
-    catalog_lines = "\n".join(f"  - {m['id']}: {m['name']} (unit: {m['unit']})" for m in catalog)
+    catalog_lines = "\n".join(
+        f"  - {parent_disclosure_code(m['id'])}: {m['name']} (unit: {m['unit']})" for m in catalog
+    )
 
     return f"""You are extracting ESRS sustainability metrics from a corporate report.
 
@@ -173,10 +186,11 @@ Catalog of metrics to look for under {esrs_topic.value}:
 Rules:
 1. Only extract values that appear LITERALLY in the report excerpt below.
 2. If a metric is not disclosed, omit it (do not invent or estimate).
-3. Each metric MUST include the page number (source_page) and a verbatim snippet (source_snippet, ≥20 chars) supporting the value.
+3. Each metric MUST include the page number (source_page) and a verbatim snippet (source_snippet, >=20 chars) supporting the value.
 4. model_confidence reflects YOUR self-rated certainty in [0, 1].
 5. Boolean metrics: use value_text 'Yes' or 'No'; value_numeric null.
 6. Numeric metrics: use value_numeric (raw number); value_text null.
+7. esrs_disclosure MUST be the parent ESRS code only (e.g. 'E1-6', 'S1-9', 'G1-1') — never include a dotted suffix. Use metric_name to disambiguate (e.g. 'Total Scope 2 GHG emissions (location-based)').
 
 Report excerpt:
 ---

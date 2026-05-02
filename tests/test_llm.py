@@ -265,3 +265,43 @@ class TestSourceCitation:
         )
         assert metrics[0].source_citation.page == 42
         assert good_metric_payload["source_snippet"] in metrics[0].source_citation.snippet  # type: ignore[operator]
+
+
+# ── Disclosure-code normalization (regression for real-LLM run) ──────
+
+
+class TestDisclosureCodeNormalization:
+    """Real LLMs occasionally emit dotted sub-codes (e.g. 'E1-6.scope_2_location').
+
+    These are internal to the prompt catalog — they would (a) overflow the
+    schema's 20-char cap on esrs_disclosure, and (b) never join to dim_metric
+    (which uses canonical parent codes). The build path strips the suffix.
+    """
+
+    def test_dotted_subcode_normalized_to_parent(self, lvmh: CompanyEntry) -> None:
+        anthropic = MagicMock()
+        payload = {
+            "esrs_disclosure": "E1-6.scope_2_location",
+            "metric_name": "Total Scope 2 GHG emissions (location-based)",
+            "value_numeric": 88200.0,
+            "value_text": None,
+            "unit": "tCO2e",
+            "model_confidence": 0.91,
+            "source_page": 42,
+            "source_snippet": "Location-based Scope 2 emissions reached 88,200 tCO2e in 2024.",
+        }
+        anthropic.messages.create.return_value = _claude_tool_response([payload])
+
+        metrics = extract_esrs_metrics(
+            pdf_text=str(payload["source_snippet"]),
+            page_offset=42,
+            company=lvmh,
+            esrs_topic=ESRSTopic.E1_CLIMATE,
+            fiscal_year=2024,
+            anthropic_client=anthropic,
+            mistral_client=MagicMock(),
+        )
+        assert len(metrics) == 1
+        assert metrics[0].esrs_disclosure == "E1-6"
+        # Disambiguation preserved in metric_name where dim_metric expects it.
+        assert "location-based" in metrics[0].metric_name.lower()

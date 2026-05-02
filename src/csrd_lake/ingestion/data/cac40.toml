@@ -12,7 +12,8 @@ name = "LVMH"
 sector = "Luxury"
 country = "FR"
 ir_page_url = "https://www.lvmh.com/investors/"
-language = "fr"
+known_report_url = "https://urd.lvmh.com/en/urd-2023-va_vdef.pdf"
+language = "en"
 
 [[companies]]
 ticker = "TTE.PA"
@@ -20,7 +21,8 @@ name = "TotalEnergies"
 sector = "Energy"
 country = "FR"
 ir_page_url = "https://totalenergies.com/investors"
-language = "fr"
+known_report_url = "https://totalenergies.com/system/files/documents/2024-03/totalenergies_sustainability-climate-2024-progress-report_2024_en_pdf.pdf"
+language = "en"
 
 [[companies]]
 ticker = "BNP.PA"
@@ -68,6 +70,7 @@ name = "Schneider Electric"
 sector = "Industrial"
 country = "FR"
 ir_page_url = "https://www.se.com/ww/en/about-us/investors/"
+known_report_url = "https://www.se.com/ww/en/assets/564/document/510443/2024-universal-registration-document.pdf"
 language = "en"
 
 [[companies]]
