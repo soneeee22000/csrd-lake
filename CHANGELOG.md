@@ -10,7 +10,26 @@ All notable changes to CSRD-Lake. Format follows [Keep a Changelog](https://keep
 - 90-second narrated Loom walkthrough showing live warehouse schema, dbt lineage graph, and a sample LLM extraction
 - DAX 40 + IBEX 35 manifest extension
 - IR-page scraping for companies without a known direct PDF URL
-- Closing the 13-row drop between `raw.disclosure_extracted` (34) and `marts.fact_disclosure` (21) — `metric_name` string drift between LLM output and `dim_metric` seed
+- Tighten extraction prompt to keep value strings byte-identical to source — currently 14 fact rows fail the `metric_value_in_source_text` test where the LLM normalises "129 million" → 129000000
+
+## [0.4.0] — 2026-05-02
+
+End-to-end validation. Snowflake target promoted from "documented portable" to "verified". Dashboard reorganised landing-first.
+
+### Added
+
+- **Snowflake validation, end-to-end** — bootstrap script (`scripts/bootstrap_snowflake.py`) connects via key-pair auth, runs DDL, loads the 34 already-extracted metrics from `data/extracted/*.json`, runs dbt seed/run/test against the Snowflake target. 34 raw rows → 32 fact rows → 14 published / 18 review on the live `ULWVOTP-MJ06399` account, identical to DuckDB.
+- **Key-pair authentication path** — `scripts/generate_snowflake_keypair.py` generates 2048-bit PKCS#8 keys; `csrd_lake.warehouse.loader` and the dbt profile both accept `SNOWFLAKE_PRIVATE_KEY_PATH` (preferred — bypasses MFA enforcement that blocks plain-password auth on free-trial accounts).
+- **dbt wrapper** (`scripts/dbt_run.py`) — loads `.env` via `python-dotenv` so `SNOWFLAKE_*` vars reach the dbt subprocess; expands `~` in private-key path; pins `DBT_PROFILES_DIR` to absolute so re-runs from any cwd work.
+- **Landing page** at `/` — hero, live warehouse stats (32 metrics / 14 published / 18 review / 7 dbt models), CSRD problem context, six-stage architecture cards, tech stack by layer, honest "real vs stub" callout, CTA. Existing company list moved to `/companies`.
+- **Page-citation snippet test surfacing real findings** — the `metric_value_in_source_text` custom dbt test catches 14 LLM string-format issues (e.g. "129 million" → 129000000). 54 of 55 dbt tests pass on Snowflake; the one failure is a working signal, not a regression.
+
+### Fixed
+
+- **CI failing on every push since v0.2.0** — `.gitignore` excluded `uv.lock`, but CI's `astral-sh/setup-uv@v4` cache step required it. Lockfile now tracked (308 KB, applications commit lockfiles).
+- **`dashboard/lib/utils.ts` was on disk but never tracked** — the shadcn `cn()` helper would have broken Vercel builds the first time the cache cleared. Now committed.
+- **`fact_disclosure` surrogate-key collision** — `disclosure_id` was generated from `(ticker, year, esrs_disclosure, extraction_model)` without `metric_name`, causing TotalEnergies' four E2-4 sub-pollutants to share an ID. Adds `metric_name` to the natural-key tuple.
+- **Snowflake DDL** — `CREATE INDEX IF NOT EXISTS` (which Snowflake doesn't support) replaced with `ALTER TABLE … CLUSTER BY`. Bug present since v0.1.0, only surfaced when the DDL was actually run on Snowflake.
 
 ## [0.3.0] — 2026-05-02
 

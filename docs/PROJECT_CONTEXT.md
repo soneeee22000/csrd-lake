@@ -42,8 +42,9 @@ sustainability practice would build for a banking client"**.
 > Take real CAC 40 sustainability PDFs (LVMH, TotalEnergies, Schneider
 > Electric), use Claude + Mistral to extract ESRS metrics with
 > page-level source citations and confidence scores, land them in a
-> DuckDB warehouse modeled with dbt as a star schema, and surface them
-> on a Next.js dashboard deployed to Vercel.
+> Snowflake star-schema warehouse (with a DuckDB local-dev fallback)
+> modelled with dbt, and surface them on a Next.js dashboard deployed
+> to Vercel.
 
 Every word in that sentence maps to a Cloud Data Engineer skill. We
 come back to that in §5.
@@ -51,7 +52,7 @@ come back to that in §5.
 ## 3. The architecture, layer by layer
 
 ```
-PDFs → Python ingestion → LLM extraction → DuckDB warehouse → dbt models → JSON snapshot → Next.js dashboard
+PDFs → Python ingestion → LLM extraction → Snowflake / DuckDB warehouse → dbt models → JSON snapshot → Next.js dashboard
 ```
 
 | Layer                                        | What it does                                                                                                                                                                                                                                                                                                       | Real example                                                                                |
@@ -78,20 +79,20 @@ verbatim_snippet)`. A custom dbt test asserts the snippet contains
 
 ## 4. Honest status — what's real, what's stub
 
-|                    | Real / done                                                                           | Stub / aspirational                                                                          |
-| ------------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| **PDF ingestion**  | 3 CAC 40 reports downloaded from real IR sites                                        | Only 3 of 10 manifest entries; IR-page scraping not implemented                              |
-| **LLM extraction** | 34 real metrics extracted, real Claude + Mistral API calls, ~$1.50 spent              | The "96% accuracy" claim is **pending hand-verified gold set** — do not quote until verified |
-| **Warehouse**      | DuckDB local, fully working end-to-end                                                | Snowflake target defined in profile but never deployed on a free trial                       |
-| **dbt**            | 7 models + 54 data tests + 3 custom tests, all green against DuckDB                   | Same models would build against Snowflake but not validated there                            |
-| **Airflow**        | DAG file exists, parses, has retry policy + dynamic task mapping                      | Not actually run — extraction goes through a plain Python CLI                                |
-| **Dashboard**      | Live at csrd-lake.vercel.app, real data after the v0.3.0 commits                      | Portfolio exposure values are clearly-labeled synthetic (real Scope 1, synthetic loan book)  |
-| **Tests**          | 167 pytest cases, ~91% coverage on `src/`, structural tests for DAG + dbt + dashboard | —                                                                                            |
-| **CI/CD**          | GitHub Actions runs lint + mypy + pytest + dbt parse on every push, no secrets needed | —                                                                                            |
+|                    | Real / done                                                                                                                                                                     | Stub / aspirational                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **PDF ingestion**  | 3 CAC 40 reports downloaded from real IR sites                                                                                                                                  | Only 3 of 10 manifest entries; IR-page scraping not implemented                              |
+| **LLM extraction** | 34 real metrics extracted, real Claude + Mistral API calls, ~$1.50 spent                                                                                                        | The "96% accuracy" claim is **pending hand-verified gold set** — do not quote until verified |
+| **Warehouse**      | DuckDB local AND Snowflake (validated end-to-end with key-pair auth, 34 rows loaded, 7 dbt models built)                                                                        | —                                                                                            |
+| **dbt**            | 7 models + 54 generic data tests + 3 custom tests, green against DuckDB; 54 of 55 tests green against Snowflake (one custom test correctly catches 14 LLM string-format issues) | —                                                                                            |
+| **Airflow**        | DAG file exists, parses, has retry policy + dynamic task mapping                                                                                                                | Not actually run — extraction goes through a plain Python CLI                                |
+| **Dashboard**      | Live at csrd-lake.vercel.app, landing page + real ESRS data after v0.4.0                                                                                                        | Portfolio exposure values are clearly-labelled synthetic (real Scope 1, synthetic loan book) |
+| **Tests**          | 168 pytest cases, ~91% coverage on `src/`, structural tests for DAG + dbt + dashboard                                                                                           | —                                                                                            |
+| **CI/CD**          | GitHub Actions runs lint + mypy + pytest + dbt parse on every push, no secrets needed                                                                                           | —                                                                                            |
 
-**The gap to "production":** Snowflake actually deployed, Airflow
-actually scheduled, gold set actually verified. Everything else is
-real.
+**The gap to "production":** Airflow actually scheduled, hand-verified
+gold-set accuracy. Everything else is real, including the Snowflake
+warehouse target now validated against a real account.
 
 ## 5. What this code demonstrates (skills mapping)
 

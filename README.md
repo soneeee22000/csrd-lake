@@ -110,18 +110,18 @@ See [`docs/PRD.md`](docs/PRD.md) for full requirements, edge-case handling, and 
 
 ## Tech stack
 
-| Layer             | Choice                                                                                             | Why                                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Orchestration     | **Apache Airflow 2.10** (Docker Compose)                                                           | Modern data stack canonical; portable to MWAA / Astronomer / ADF                     |
-| Extraction LLM    | **Claude Sonnet 4.6** primary + **Mistral Large** fallback                                         | Claude's tool-use API for structured outputs; Mistral as cost / FR-language fallback |
-| Schema validation | **Pydantic v2**                                                                                    | Type-safe LLM output validation at the boundary                                      |
-| Warehouse         | **DuckDB** local (default) or **Snowflake** (free-trial-ready)                                     | dbt-duckdb for laptop dev, dbt-snowflake for cloud; same models compile to both      |
-| Transformations   | **dbt-core 1.9** with `dbt-snowflake` and `dbt_utils`                                              | Lineage + tests + docs out of the box                                                |
-| Dashboard         | **Next.js 16** + Tailwind v4 (live at csrd-lake.vercel.app)                                        | Server Components, pre-rendered, design-token discipline                             |
-| PDF parsing       | `pdfplumber` + `pypdf`                                                                             | Text extraction from sustainability PDFs                                             |
-| HTTP              | `httpx` + `tenacity`                                                                               | Retry-aware async-ready downloader                                                   |
-| Tests             | `pytest` + dbt tests (`not_null`, `unique`, `accepted_values`, `relationships`, custom data tests) | Pyramid + data-quality                                                               |
-| CI                | **GitHub Actions** (lint + mypy + pytest + dbt parse)                                              | Quality gates enforced pre-merge                                                     |
+| Layer             | Choice                                                                                             | Why                                                                                    |
+| ----------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Orchestration     | **Apache Airflow 2.10** (Docker Compose)                                                           | Modern data stack canonical; portable to MWAA / Astronomer / ADF                       |
+| Extraction LLM    | **Claude Sonnet 4.6** primary + **Mistral Large** fallback                                         | Claude's tool-use API for structured outputs; Mistral as cost / FR-language fallback   |
+| Schema validation | **Pydantic v2**                                                                                    | Type-safe LLM output validation at the boundary                                        |
+| Warehouse         | **Snowflake** (validated end-to-end with key-pair auth) and **DuckDB** (local-dev fallback)        | Identical column shape, identical dbt models — proves portability under one codebase   |
+| Transformations   | **dbt-core 1.11** with `dbt-snowflake` + `dbt-duckdb` + `dbt_utils`                                | Lineage + tests + docs; auto-extending `dim_metric` accepts real-world sub-disclosures |
+| Dashboard         | **Next.js 16** + Tailwind v4 (live at csrd-lake.vercel.app)                                        | Server Components, pre-rendered, design-token discipline                               |
+| PDF parsing       | `pdfplumber` + `pypdf`                                                                             | Text extraction from sustainability PDFs                                               |
+| HTTP              | `httpx` + `tenacity`                                                                               | Retry-aware async-ready downloader                                                     |
+| Tests             | `pytest` + dbt tests (`not_null`, `unique`, `accepted_values`, `relationships`, custom data tests) | Pyramid + data-quality                                                                 |
+| CI                | **GitHub Actions** (lint + mypy + pytest + dbt parse)                                              | Quality gates enforced pre-merge                                                       |
 
 ```mermaid
 mindmap
