@@ -10,8 +10,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -67,6 +67,8 @@ airflow/webserver_config.py
 data/raw/
 data/staging/
 data/intermediate/
+data/warehouse/
+data/extracted/
 # Keep a small samples/ directory in git for reproducibility
 !data/samples/
 

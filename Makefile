@@ -1,4 +1,4 @@
-.PHONY: help setup services stop lint format test smoke ci verify-llm dbt-run dbt-test demo clean
+.PHONY: help setup services stop lint format test smoke ci verify-llm extract-batch dbt-build export-dashboard real-data-pipeline dbt-run dbt-test demo clean
 
 # Defaults for `make verify-llm` — override on the command line:
 #   make verify-llm PDF=data/samples/lvmh-2024.pdf TICKER=MC.PA TOPIC=E1
@@ -46,10 +46,25 @@ verify-llm:  ## Real-LLM smoke test: extract one PDF via Claude+Mistral. PDF=pat
 	@test -f $(PDF) || (echo "  ✗ PDF not found at $(PDF) — pass PDF=path/to/your.pdf" && exit 1)
 	uv run python -m csrd_lake.extraction.cli --pdf $(PDF) --ticker $(TICKER) --topic $(TOPIC)
 
-dbt-run:  ## Run dbt models
+extract-batch:  ## Run real-LLM batch across all PDFs in data/raw/ × 5 ESRS topics into local DuckDB
+	@test -f .env || (echo "  ✗ .env missing — copy .env.example, fill in ANTHROPIC_API_KEY + MISTRAL_API_KEY" && exit 1)
+	uv run python -m csrd_lake.extraction.batch --max-pages 200 --max-prompt-chars 80000 --inter-call-delay 8
+
+dbt-build:  ## Build all dbt models against local DuckDB (seed + run)
+	cd dbt_project && DBT_TARGET=duckdb uv run dbt deps
+	cd dbt_project && DBT_TARGET=duckdb uv run dbt seed
+	cd dbt_project && DBT_TARGET=duckdb uv run dbt run
+
+export-dashboard:  ## Export DuckDB marts to dashboard/lib/data/disclosures.json (commit this file)
+	uv run python scripts/export_dashboard_data.py
+
+real-data-pipeline: extract-batch dbt-build export-dashboard  ## End-to-end: real LLM batch -> DuckDB -> dbt marts -> dashboard JSON
+	@echo "→ Real-data pipeline complete. cd dashboard && pnpm build to publish."
+
+dbt-run:  ## Run dbt models (Snowflake target)
 	cd dbt_project && uv run dbt run --target dev
 
-dbt-test:  ## Run dbt tests
+dbt-test:  ## Run dbt tests (Snowflake target)
 	cd dbt_project && uv run dbt test --target dev
 
 demo:  ## Full cold-start demo (PRD Story 3 acceptance test)
