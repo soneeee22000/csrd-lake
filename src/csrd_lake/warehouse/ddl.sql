@@ -50,9 +50,11 @@ CREATE TABLE IF NOT EXISTS RAW.DISCLOSURE_EXTRACTED (
   extraction_timestamp TIMESTAMP_TZ NOT NULL DEFAULT CURRENT_TIMESTAMP()
 );
 
--- The dbt staging layer treats this composite as the natural key for
--- de-duplication when the same extraction is re-run.
-CREATE INDEX IF NOT EXISTS IDX_RAW_DISCLOSURE_NATURAL ON RAW.DISCLOSURE_EXTRACTED (
+-- Snowflake uses CLUSTER BY (no CREATE INDEX). The dbt staging layer
+-- treats (company_ticker, fiscal_year, esrs_disclosure, metric_name,
+-- extraction_model) as the natural key for re-run de-duplication;
+-- clustering on the prefix accelerates the partition window.
+ALTER TABLE RAW.DISCLOSURE_EXTRACTED CLUSTER BY (
   company_ticker,
   fiscal_year,
   esrs_disclosure,

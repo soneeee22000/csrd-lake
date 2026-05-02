@@ -36,10 +36,14 @@ dim_period as (
 )
 
 select
+    -- Natural key includes metric_name because corporate disclosures emit
+    -- multiple sub-metrics under one disclosure code (e.g. TotalEnergies
+    -- splits E2-4 air pollutants into NMVOC / NOx / SO2 / PM).
     {{ dbt_utils.generate_surrogate_key([
         'stg.company_ticker',
         'stg.fiscal_year',
         'stg.esrs_disclosure',
+        'stg.metric_name',
         'stg.extraction_model'
     ]) }}                                       as disclosure_id,
     dim_company.company_id,
