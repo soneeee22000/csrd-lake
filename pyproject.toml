@@ -24,9 +24,12 @@ dependencies = [
     # Language detection
     "langdetect>=1.0.9",
 
-    # Snowflake
+    # Snowflake (primary warehouse target per PRD)
     "snowflake-connector-python>=3.13.0",
     "snowflake-sqlalchemy>=1.7.0",
+
+    # DuckDB (local-development warehouse fallback per PRD Decision Log 2026-04-30)
+    "duckdb>=1.1.0",
 
     # Data utilities
     "pandas>=2.2.0",
@@ -50,6 +53,7 @@ airflow = [
 dbt = [
     "dbt-core>=1.9.0",
     "dbt-snowflake>=1.9.0",
+    "dbt-duckdb>=1.9.0",
 ]
 dev = [
     "pytest>=8.3.0",

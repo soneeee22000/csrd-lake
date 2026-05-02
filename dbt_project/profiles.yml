@@ -10,9 +10,17 @@
 # To use a different profiles location, set DBT_PROFILES_DIR.
 
 csrd_lake:
-  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  target: "{{ env_var('DBT_TARGET', 'duckdb') }}"
 
   outputs:
+    # Local DuckDB target — PRD warehouse fallback, no cloud signup needed.
+    # The .duckdb file is created by `csrd_lake.warehouse.duckdb_loader.bootstrap`.
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('CSRD_DUCKDB_PATH', '../data/warehouse/csrd_lake.duckdb') }}"
+      threads: 4
+      schema: marts
+
     dev:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"

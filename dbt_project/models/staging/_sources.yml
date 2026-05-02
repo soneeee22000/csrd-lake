@@ -4,10 +4,12 @@ sources:
   - name: raw
     description: |
       Raw landing zone written by the Python extraction pipeline.
-      See `src/csrd_lake/warehouse/loader.py` for the writer and
-      `src/csrd_lake/warehouse/ddl.sql` for the canonical schema.
-    database: "{{ env_var('SNOWFLAKE_DATABASE', 'CSRD_LAKE') }}"
-    schema: RAW
+      Writers: `csrd_lake.warehouse.loader` (Snowflake) and
+      `csrd_lake.warehouse.duckdb_loader` (local DuckDB fallback).
+      DDL: `src/csrd_lake/warehouse/ddl.sql` mirrors the DuckDB DDL embedded
+      in `duckdb_loader.DUCKDB_DDL`.
+    database: "{{ env_var('SNOWFLAKE_DATABASE', 'CSRD_LAKE') if target.type == 'snowflake' else target.database }}"
+    schema: "{{ 'RAW' if target.type == 'snowflake' else 'raw' }}"
     tables:
       - name: disclosure_extracted
         description: |
