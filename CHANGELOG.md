@@ -7,10 +7,42 @@ All notable changes to CSRD-Lake. Format follows [Keep a Changelog](https://keep
 ### Planned for v1.1
 
 - 800-datapoint hand-verified gold set with per-language + per-topic accuracy breakdown
-- 90-second narrated Loom walkthrough showing live Snowflake schema, dbt lineage graph, and a sample LLM extraction
+- 90-second narrated Loom walkthrough showing live warehouse schema, dbt lineage graph, and a sample LLM extraction
 - DAX 40 + IBEX 35 manifest extension
 - IR-page scraping for companies without a known direct PDF URL
-- Dashboard v1.1: switch `lib/data.ts` synthetic accessors for live Snowflake reads from `mart_disclosure_published`
+- Closing the 13-row drop between `raw.disclosure_extracted` (34) and `marts.fact_disclosure` (21) — `metric_name` string drift between LLM output and `dim_metric` seed
+
+## [0.3.0] — 2026-05-02
+
+End-to-end real data — first run of the pipeline against live CAC 40 sustainability reports.
+
+### Added
+
+- **Real PDF ingestion** — three CAC 40 reports downloaded from official IR sites and committed to the manifest as `known_report_url`: LVMH URD 2023 (5.1 MB), TotalEnergies Sustainability & Climate 2024 (10.0 MB), Schneider Electric URD 2024 (14.0 MB — first explicitly CSRD-compliant filing). Total 29.6 MB of real corporate disclosure on disk.
+- **Local DuckDB warehouse** (`csrd_lake.warehouse.duckdb_loader`) — drop-in replacement for the Snowflake loader, parameterised on the same `metric_to_row` shape with `?` placeholders. Bootstraps `raw / staging / marts` schemas in `data/warehouse/csrd_lake.duckdb`. PRD §10 Decision-Log fallback now the default for local dev.
+- **dbt-duckdb adapter wired** — new `duckdb` target in `dbt_project/profiles.yml`; `_sources.yml` switches database/schema via `target.type` Jinja conditional so the same models compile against either warehouse. `dbt seed && dbt run` materialises 7 models against DuckDB in <1 s.
+- **Batch extraction CLI** (`csrd_lake.extraction.batch`) — runs the full 3-PDF × 5-topic matrix, streams results into DuckDB after each topic so a mid-batch crash never loses work, persists per-company JSON archives to `data/extracted/`, prints a routing summary at the end. Cost ~$1.50 wall-clock, ~7 minutes.
+- **Topic-keyword page filter** — pre-filters each PDF down to topic-relevant pages (~80 K chars / ~20 K tokens) so prompts fit Anthropic's 30 K-tokens-per-minute free-tier limit. Cuts prompts ~10× without losing recall on the metrics the catalog targets.
+- **Rate-limit + Mistral SDK error handling** — the Claude→Mistral fallback chain now catches `anthropic.APIError` (429s, 5xx) and Mistral's broader exception surface so neither provider rate-limiting can crash the batch.
+- **Test count: 167** (was 158) — added regression test for dotted-suffix disclosure-code normalisation, full DuckDB loader round-trip suite (6 tests), and `dbt_packages/` exclusion in the project-structure scanner.
+
+### Changed
+
+- `esrs_disclosure` codes are normalised at the LLM-output boundary — sub-codes such as `E1-6.scope_2_location` are stripped to canonical `E1-6` so the fact→dim_metric join resolves cleanly. The dotted form was a prompt-design mistake the schema's 20-character cap accidentally caught; both prompt and validator now agree on canonical codes.
+- `pyproject.toml` adds `duckdb>=1.1.0` to base dependencies and `dbt-duckdb>=1.9.0` to the `dbt` extra.
+- `data/raw/`, `data/extracted/`, `data/warehouse/` added to `.gitignore`; only `data/samples/` is committed.
+
+### Verified extractions (top published mart by confidence)
+
+- TotalEnergies — net-zero target year 2050 (p.15, 0.99)
+- LVMH — 213,268 employees (p.13, 0.95)
+- Schneider Electric — net-zero target year 2050 (p.9, 0.95)
+- TotalEnergies — 2 work-related fatalities (p.62, 0.90)
+- TotalEnergies — 76 Mm³ water consumption (p.105, 0.90)
+
+### Known issue
+
+- 13 of 34 raw rows do not yet appear in `marts.fact_disclosure` — `metric_name` string drift between LLM output and `dim_metric` seed (e.g. `"Total employees"` vs `"Total employees (headcount)"`). Tracked for v0.4.
 
 ## [0.2.0] — 2026-05-01
 

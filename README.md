@@ -113,7 +113,7 @@ See [`docs/PRD.md`](docs/PRD.md) for full requirements, edge-case handling, and 
 | Orchestration     | **Apache Airflow 2.10** (Docker Compose)                                                           | Modern data stack canonical; portable to MWAA / Astronomer / ADF                     |
 | Extraction LLM    | **Claude Sonnet 4.6** primary + **Mistral Large** fallback                                         | Claude's tool-use API for structured outputs; Mistral as cost / FR-language fallback |
 | Schema validation | **Pydantic v2**                                                                                    | Type-safe LLM output validation at the boundary                                      |
-| Warehouse         | **Snowflake** (free-trial-ready; DuckDB fallback documented)                                       | Modern data stack canonical; dbt-snowflake adapter                                   |
+| Warehouse         | **DuckDB** local (default) or **Snowflake** (free-trial-ready)                                     | dbt-duckdb for laptop dev, dbt-snowflake for cloud; same models compile to both      |
 | Transformations   | **dbt-core 1.9** with `dbt-snowflake` and `dbt_utils`                                              | Lineage + tests + docs out of the box                                                |
 | Dashboard         | **Next.js 16** + Tailwind v4 (live at csrd-lake.vercel.app)                                        | Server Components, pre-rendered, design-token discipline                             |
 | PDF parsing       | `pdfplumber` + `pypdf`                                                                             | Text extraction from sustainability PDFs                                             |
@@ -166,7 +166,7 @@ mindmap
 
 ## Quickstart
 
-**Prerequisites:** Python 3.12, Docker Compose, [`uv`](https://github.com/astral-sh/uv), Snowflake account, Anthropic + Mistral API keys.
+**Prerequisites:** Python 3.12, [`uv`](https://github.com/astral-sh/uv), Anthropic + Mistral API keys. Snowflake credentials are optional — the local DuckDB target is the default for development.
 
 ```bash
 # 1. Clone + install
@@ -176,29 +176,30 @@ make setup       # uv sync --all-extras
 
 # 2. Configure secrets
 cp .env.example .env
-# edit .env — fill in ANTHROPIC_API_KEY, MISTRAL_API_KEY, SNOWFLAKE_*
+# edit .env — fill in ANTHROPIC_API_KEY and MISTRAL_API_KEY (Snowflake vars optional)
 
 # 3. Sanity check (no external services needed)
 make smoke       # pytest -m smoke -v
 make ci          # full lint + mypy + test suite
 
 # 4. Real-LLM extraction smoke test (~$0.10 per run)
-#    Drop one CAC 40 sustainability PDF in data/samples/ first.
+#    A pre-downloaded sample is shipped at data/samples/.
 make verify-llm PDF=data/samples/lvmh-2024.pdf TICKER=MC.PA TOPIC=E1
 # → prints every extracted ESRSMetric with confidence, source citation, routing
-# → on Windows without `make`:
-#    uv run python -m csrd_lake.extraction.cli --pdf data/samples/lvmh-2024.pdf --ticker MC.PA --topic E1
+# → on Windows without `make` / `uv` on PATH:
+#    .venv/Scripts/python.exe -m csrd_lake.extraction.cli --pdf data/samples/lvmh-2024.pdf --ticker MC.PA --topic E1
 
-# 5. Bootstrap the warehouse
-snowsql -f src/csrd_lake/warehouse/ddl.sql
+# 5. Real-data batch — 3 PDFs × 5 ESRS topics → DuckDB warehouse (~$1.50, ~7 min)
+uv run python -m csrd_lake.ingestion.downloader --manifest    # downloads CAC 40 PDFs into data/raw/
+uv run python -m csrd_lake.extraction.batch --max-pages 200 --max-prompt-chars 80000 --inter-call-delay 8
 
-# 6. Start Airflow + Postgres metadata
-make services
+# 6. Build the marts
+cd dbt_project
+DBT_TARGET=duckdb uv run dbt deps && DBT_TARGET=duckdb uv run dbt seed && DBT_TARGET=duckdb uv run dbt run
 
-# 7. Run the demo
-make demo
-# → opens Airflow UI at http://localhost:8080 (login: airflow/airflow)
-# → triggers ingest_pdfs → extract_esrs → load_to_snowflake → dbt run/test
+# 7. Optional — Snowflake target (Docker Airflow stack)
+#    snowsql -f src/csrd_lake/warehouse/ddl.sql
+#    make services && make demo
 ```
 
 ## Project layout
