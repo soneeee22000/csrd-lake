@@ -50,10 +50,16 @@ export default function RootLayout({
             </Link>
             <nav className="flex items-center gap-6 text-sm">
               <Link
+                href="/companies"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Companies
+              </Link>
+              <Link
                 href="/portfolio"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                Portfolio rollup
+                Portfolio
               </Link>
               <a
                 href="https://github.com/soneeee22000/csrd-lake"
@@ -70,8 +76,8 @@ export default function RootLayout({
         <footer className="border-t mt-16">
           <div className="container-page py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 text-sm text-muted-foreground">
             <span>
-              CSRD-Lake — portfolio reference implementation. Synthetic data;
-              not real corporate disclosures.
+              CSRD-Lake — open-source reference implementation. Real ESRS data
+              extracted via LLM with page-level audit lineage.
             </span>
             <span>
               Built by{" "}
