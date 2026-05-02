@@ -61,9 +61,11 @@ Every extracted metric carries:
 
 ## Why this exists
 
-French G-SIBs face CSRD wave-1 reporting deadlines in 2026. Capgemini, Deloitte, PwC, KPMG, and EY are publicly shipping "Sustainability Data Hub" / "ESG Reporting Manager" / "CSRD 360 Navigator" platforms to French banks today. The freelance market for **Cloud Data Engineers fluent in Snowflake/dbt/Airflow + GenAI extraction** is real (Free-Work IDF data-engineer median TJM is €616/day for 5-10yr profiles, with hybrid AI premium pushing senior contracts higher).
+In 2024 the EU passed the **Corporate Sustainability Reporting Directive (CSRD)**. From wave 1 (FY2024 reports) onward, every large EU public company must publish detailed sustainability disclosures using the **European Sustainability Reporting Standards (ESRS)** — over 1,100 datapoints across climate, pollution, water, workforce, and governance. The reports come out as **300–700 page PDFs**. Investors, banks, regulators, and corporate compliance teams need this data **structured and queryable**, not as PDFs.
 
-CSRD-Lake demonstrates that pattern end-to-end as a single open-source reference implementation.
+This is the problem Big-4 ESG practices and integrators (Capgemini, Deloitte, PwC, KPMG, EY) are solving for French G-SIBs (BNP Paribas, Société Générale, Crédit Agricole, BPCE) right now under names like **"Sustainability Data Hub"** (Capgemini), **"ESG Reporting Manager"** (PwC), and **"CSRD 360 Navigator"**. The pattern is consistent: ingest sustainability PDFs → extract structured ESRS metrics → land in a cloud warehouse → expose via dashboard / API for downstream reporting and analysis.
+
+CSRD-Lake is a working reference implementation of that pattern, end-to-end, on real CAC 40 disclosures. **For the full project context** — the regulatory background, layer-by-layer architecture walkthrough, honest "real vs stub" status table, and the skills the codebase demonstrates — see [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
 
 ## Architecture
 
