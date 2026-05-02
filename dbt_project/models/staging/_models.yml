@@ -4,8 +4,10 @@ models:
   - name: stg_disclosure
     description: |
       Cleaned + deduplicated landing layer. One row per
-      (company_ticker, fiscal_year, esrs_disclosure, extraction_model)
+      (company_ticker, fiscal_year, esrs_disclosure, metric_name, extraction_model)
       tuple, with the latest extraction_timestamp winning on duplicates.
+      metric_name is in the natural key because real disclosures emit multiple
+      sub-metrics under the same disclosure code (e.g. E2-4 NMVOC vs NOx vs SO2).
       Fact tables read from here; raw is not joined directly downstream.
     columns:
       - name: company_ticker
@@ -40,4 +42,5 @@ models:
             - company_ticker
             - fiscal_year
             - esrs_disclosure
+            - metric_name
             - extraction_model
