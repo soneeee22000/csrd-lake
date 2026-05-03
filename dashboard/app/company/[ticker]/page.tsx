@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { COMPANIES, getDisclosuresByTicker, type EsrsTopic } from "@/lib/data";
+import {
+  getCompaniesWithData,
+  getDisclosuresByTicker,
+  type EsrsTopic,
+} from "@/lib/data";
 import { MetricTable } from "@/components/metric-table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +16,11 @@ const TOPIC_ORDER: readonly EsrsTopic[] = ["E1", "E2", "E3", "S1", "G1"];
 
 type Params = { ticker: string };
 
-// Pre-render every company page at build time.
+// Pre-render only companies with extracted data — visitors should never
+// land on an empty profile. The full manifest is acknowledged on the
+// /companies index footnote.
 export function generateStaticParams(): Params[] {
-  return COMPANIES.map((c) => ({ ticker: c.ticker }));
+  return getCompaniesWithData().map((c) => ({ ticker: c.ticker }));
 }
 
 export async function generateMetadata({

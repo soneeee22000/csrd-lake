@@ -65,6 +65,25 @@ export function getAllCompanies(): readonly Company[] {
   return COMPANIES;
 }
 
+/** Companies with at least one extracted ESRS metric. The dashboard hides
+ *  zero-metric profiles to avoid leading a visitor to an empty page; the
+ *  full manifest is still surfaced as a footnote on the /companies route.
+ */
+export function getCompaniesWithData(): readonly Company[] {
+  return COMPANIES.filter(
+    (c) => (SNAPSHOT.disclosuresByTicker[c.ticker] ?? []).length > 0,
+  );
+}
+
+/** Manifest companies with no extracted data yet — for the "pending
+ *  ingestion" footnote on /companies. Stable order matches COMPANIES.
+ */
+export function getCompaniesPendingIngestion(): readonly Company[] {
+  return COMPANIES.filter(
+    (c) => (SNAPSHOT.disclosuresByTicker[c.ticker] ?? []).length === 0,
+  );
+}
+
 export function getCompanyByTicker(ticker: string): Company | undefined {
   return COMPANIES.find((c) => c.ticker === ticker);
 }

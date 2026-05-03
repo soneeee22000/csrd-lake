@@ -396,7 +396,7 @@ export default function LandingPage() {
             href="/companies"
             className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-primary-foreground font-medium hover:opacity-90 transition-opacity"
           >
-            Browse the {COMPANIES.length} companies
+            Browse the {SNAPSHOT_STATS.companiesWithData} ingested companies
             <ArrowRight aria-hidden className="size-4" />
           </Link>
           <a

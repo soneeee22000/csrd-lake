@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getAllCompanies, SNAPSHOT_EXTRACTED_AT } from "@/lib/data";
+import {
+  COMPANIES,
+  getCompaniesWithData,
+  getCompaniesPendingIngestion,
+  SNAPSHOT_EXTRACTED_AT,
+} from "@/lib/data";
 import {
   Card,
   CardContent,
@@ -13,11 +18,12 @@ import { Badge } from "@/components/ui/badge";
 export const metadata = {
   title: "Companies",
   description:
-    "FY2024 ESG profiles for the 10 CAC 40 companies in the CSRD-Lake manifest.",
+    "FY2024 ESG profiles for CAC 40 companies with extracted disclosures in the CSRD-Lake warehouse.",
 };
 
 export default function CompaniesPage() {
-  const companies = getAllCompanies();
+  const ingested = getCompaniesWithData();
+  const pending = getCompaniesPendingIngestion();
   const extractedDate = new Date(SNAPSHOT_EXTRACTED_AT)
     .toISOString()
     .slice(0, 10);
@@ -30,10 +36,10 @@ export default function CompaniesPage() {
         </Badge>
         <h1>Companies</h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          Browse the FY2024 ESG profile of any CAC 40 company in the manifest.
-          Three companies have real LLM-extracted disclosures from their
-          published sustainability reports; the remaining seven render an empty
-          profile (PDF ingestion pending).
+          {ingested.length} of {COMPANIES.length} CAC 40 companies in the
+          manifest have a full FY2024 ESG profile in the warehouse. Each profile
+          groups extracted ESRS metrics by topic and shows the confidence score,
+          model attribution, and source-page citation for every value.
         </p>
         <p className="text-sm text-muted-foreground">
           Need the bigger picture first?{" "}
@@ -56,13 +62,13 @@ export default function CompaniesPage() {
 
       <section className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2>Companies in the manifest</h2>
+          <h2>Profiles available</h2>
           <span className="font-mono text-xs text-muted-foreground">
-            {companies.length} listed
+            {ingested.length} of {COMPANIES.length}
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {companies.map((company) => (
+          {ingested.map((company) => (
             <Link
               key={company.ticker}
               href={`/company/${company.ticker}`}
@@ -93,6 +99,38 @@ export default function CompaniesPage() {
           ))}
         </div>
       </section>
+
+      {pending.length > 0 && (
+        <section className="space-y-3 max-w-3xl">
+          <h2 className="text-base font-medium text-muted-foreground">
+            Manifest scope · pending ingestion
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            The full manifest at{" "}
+            <code className="font-mono text-xs">
+              src/csrd_lake/ingestion/data/cac40.toml
+            </code>{" "}
+            also includes {pending.length} companies whose sustainability PDFs
+            have not yet been ingested:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {pending.map((company) => (
+              <Badge
+                key={company.ticker}
+                variant="outline"
+                className="font-mono text-xs"
+                title={`${company.name} — ingestion pending`}
+              >
+                {company.ticker} · {company.name}
+              </Badge>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Ingestion is a one-line manifest update + ~$0.50 LLM cost per
+            company once a known PDF URL is set.
+          </p>
+        </section>
+      )}
     </div>
   );
 }
