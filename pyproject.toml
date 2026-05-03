@@ -145,6 +145,13 @@ markers = [
 [tool.coverage.run]
 source = ["src/csrd_lake"]
 branch = true
+# CLI entry points exercised by integration tests (real LLM APIs / real
+# Snowflake), not unit tests. Excluded from the unit-coverage gate so the
+# 70% bar stays meaningful for the logic layer.
+omit = [
+    "src/csrd_lake/extraction/cli.py",     # `make verify-llm` exercises this
+    "src/csrd_lake/extraction/batch.py",   # `make extract-batch` exercises this
+]
 
 [tool.coverage.report]
 exclude_lines = [
