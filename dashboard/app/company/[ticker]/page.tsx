@@ -8,6 +8,7 @@ import {
   type EsrsTopic,
 } from "@/lib/data";
 import { MetricTable } from "@/components/metric-table";
+import { ConfidenceExplainer } from "@/components/confidence-explainer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { confidenceBand } from "@/lib/utils";
@@ -121,6 +122,8 @@ export default async function CompanyPage({
           </CardContent>
         </Card>
       </section>
+
+      <ConfidenceExplainer />
 
       <div className="space-y-10">
         {TOPIC_ORDER.map((topic) => {

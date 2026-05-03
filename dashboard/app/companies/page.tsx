@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ConfidenceExplainer } from "@/components/confidence-explainer";
 
 export const metadata = {
   title: "Companies",
@@ -98,6 +99,10 @@ export default function CompaniesPage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="max-w-3xl">
+        <ConfidenceExplainer />
       </section>
 
       {pending.length > 0 && (
