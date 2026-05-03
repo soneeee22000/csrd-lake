@@ -2,7 +2,7 @@
 
 Next.js 16 + TypeScript + Tailwind v4 dashboard for the CSRD-Lake portfolio reference implementation.
 
-> **v1 ships with synthetic data** baked into `lib/data.ts`. v1.1 will swap in live Snowflake-backed reads from `mart_disclosure_published` / `mart_disclosure_review_queue`.
+> **Data source:** real LLM-extracted ESRS metrics from 3 CAC 40 sustainability reports. The committed snapshot at `lib/data/disclosures.json` is exported from the warehouse by `scripts/export_dashboard_data.py` (DuckDB or Snowflake — same JSON shape, same content). The current snapshot was sourced from Snowflake; the `warehouse` field in the JSON records which engine answered the query.
 
 ## Pages
 
@@ -58,9 +58,9 @@ vercel --prod
 
 The dashboard is fully self-contained — no env vars needed for v1 (data is bundled). Vercel auto-detects Next.js and uses the right build command.
 
-## Switching to live Snowflake (v1.1 plan)
+## Switching to live Snowflake reads at request time (v1.1 plan)
 
-When ready, replace the synthetic accessors in `lib/data.ts` with Server Component fetches against `mart_disclosure_published`:
+The dashboard already serves Snowflake-sourced data (via the JSON snapshot exported by `scripts/export_dashboard_data.py --source snowflake`). v1.1 would replace the static accessors in `lib/data.ts` with Server Component fetches that hit `mart_disclosure_published` on every request, trading static-build performance for live freshness:
 
 ```typescript
 // lib/data.ts (v1.1 sketch)
@@ -99,7 +99,7 @@ dashboard/
 │   ├── metric-table.tsx        ESRS-topic-grouped table with routing badges
 │   └── confidence-badge.tsx    routing-aware badge for the 0.80 threshold
 ├── lib/
-│   ├── data.ts                 synthetic v1 dataset + accessors
+│   ├── data.ts                 typed accessors over the disclosures.json snapshot
 │   └── utils.ts                cn(), formatMetricValue(), confidenceBand()
 ├── package.json
 ├── tsconfig.json

@@ -214,10 +214,15 @@ make export-dashboard # writes dashboard/lib/data/disclosures.json
 # Or chain 5-7 in one shot:
 make real-data-pipeline
 
-# 8. Optional — validate the same models against a real Snowflake account
+# 8. Validate the same models against a real Snowflake account
 #    (requires SNOWFLAKE_PRIVATE_KEY_PATH in .env; see scripts/generate_snowflake_keypair.py)
-uv run python scripts/bootstrap_snowflake.py
-uv run python scripts/dbt_run.py build --target dev
+uv run python scripts/bootstrap_snowflake.py --truncate
+uv run python scripts/dbt_run.py deps seed run test --target dev
+
+# 9. Re-export the dashboard snapshot from Snowflake instead of DuckDB.
+#    Output is byte-identical (same content, same ORDER BY); only the JSON's
+#    `warehouse` field changes — Vercel still serves the static snapshot.
+uv run python scripts/export_dashboard_data.py --source snowflake
 ```
 
 ## Project layout

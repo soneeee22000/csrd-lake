@@ -187,7 +187,7 @@ def _summarize(conn) -> None:
     try:
         cur.execute(f"SELECT COUNT(*) FROM {TARGET_TABLE}")
         n = cur.fetchone()[0]
-        print(f"\n→ {TARGET_TABLE}: {n} rows in Snowflake")
+        print(f"\n-> {TARGET_TABLE}: {n} rows in Snowflake")
         cur.execute(f"SELECT company_ticker, COUNT(*) FROM {TARGET_TABLE} GROUP BY 1 ORDER BY 1")
         for ticker, count in cur.fetchall():
             print(f"   {ticker}: {count}")
@@ -232,7 +232,7 @@ def main() -> int:
         conn.close()
 
     print(
-        "\n→ Snowflake bootstrap complete. Next: cd dbt_project && DBT_TARGET=dev uv run dbt seed && uv run dbt run"
+        "\n-> Snowflake bootstrap complete. Next: cd dbt_project && DBT_TARGET=dev uv run dbt seed && uv run dbt run"
     )
     return 0
 
