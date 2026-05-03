@@ -37,7 +37,11 @@ jobs:
         run: uv run mypy src
 
       - name: Smoke test (always must pass)
-        run: uv run pytest -m smoke -v
+        # --no-cov: smoke is a tiny subset by design; coverage is the
+        # full suite's responsibility (next step). Without this flag the
+        # default --cov-fail-under=70 from pyproject.toml fails on the
+        # naturally-low single-marker coverage.
+        run: uv run pytest -m smoke -v --no-cov
 
       - name: Full test suite
         run: uv run pytest

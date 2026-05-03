@@ -34,7 +34,7 @@ test:  ## Run full test suite with coverage
 	uv run pytest
 
 smoke:  ## Run smoke test only (cold-start sanity)
-	uv run pytest -m smoke -v
+	uv run pytest -m smoke -v --no-cov
 
 ci:  ## Everything CI runs
 	$(MAKE) lint
