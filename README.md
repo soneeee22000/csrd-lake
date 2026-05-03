@@ -24,13 +24,14 @@
 
 ## Live dashboard
 
-Three pages, all server-rendered, all pre-built at deploy time:
+Four pages, all server-rendered, all pre-built at deploy time:
 
-| Page                                                                                                     | Live URL                                                                                                                      | Screenshot                                                        |
-| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| **Home** — manifest of 10 CAC 40 companies                                                               | [csrd-lake.vercel.app](https://csrd-lake.vercel.app)                                                                          | [home.png](dashboard/public/screenshots/home.png)                 |
-| **Per-company ESG profile** — metrics grouped by ESRS topic, confidence routing badges, source citations | [/company/MC.PA](https://csrd-lake.vercel.app/company/MC.PA) · [/company/TTE.PA](https://csrd-lake.vercel.app/company/TTE.PA) | [company-lvmh.png](dashboard/public/screenshots/company-lvmh.png) |
-| **Portfolio rollup** — synthetic 10-corporate loan-book, total exposure, weighted intensity              | [/portfolio](https://csrd-lake.vercel.app/portfolio)                                                                          | [portfolio.png](dashboard/public/screenshots/portfolio.png)       |
+| Page                                                                                                     | Live URL                                                                                                                                                                                     | Screenshot                                                        |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Landing** — CSRD context, live warehouse stats, six-stage architecture, honest "real vs stub" callout  | [csrd-lake.vercel.app](https://csrd-lake.vercel.app)                                                                                                                                         | [home.png](dashboard/public/screenshots/home.png)                 |
+| **Companies** — 3 of 10 manifest companies with extracted profiles + pending-ingestion footnote          | [/companies](https://csrd-lake.vercel.app/companies)                                                                                                                                         | —                                                                 |
+| **Per-company ESG profile** — metrics grouped by ESRS topic, confidence routing badges, source citations | [/company/MC.PA](https://csrd-lake.vercel.app/company/MC.PA) · [/company/SU.PA](https://csrd-lake.vercel.app/company/SU.PA) · [/company/TTE.PA](https://csrd-lake.vercel.app/company/TTE.PA) | [company-lvmh.png](dashboard/public/screenshots/company-lvmh.png) |
+| **Portfolio rollup** — synthetic 10-corporate loan-book over real Scope 1 emissions where extracted      | [/portfolio](https://csrd-lake.vercel.app/portfolio)                                                                                                                                         | [portfolio.png](dashboard/public/screenshots/portfolio.png)       |
 
 ![CSRD-Lake home page](dashboard/public/screenshots/home.png)
 
@@ -44,7 +45,7 @@ Three pages, all server-rendered, all pre-built at deploy time:
 
 CSRD-Lake is a working reference implementation of the data architecture French banks (BNP Paribas, Société Générale, Crédit Agricole, BPCE) and the Big-4 practices supporting them ship for **CSRD wave-1 reporting in 2026**.
 
-It ingests corporate sustainability PDFs from CAC 40 issuers, extracts 80+ ESRS metrics per company using Claude Sonnet (with Mistral Large as fallback), validates each extraction against Pydantic schemas with confidence scoring, and lands the results in a Snowflake star schema modeled with dbt.
+It ingests corporate sustainability PDFs from CAC 40 issuers, extracts ESRS metrics from a 19-entry catalog covering 5 topics (E1 climate / E2 pollution / E3 water / S1 workforce / G1 governance) using Claude Sonnet (with Mistral Large as fallback), validates each extraction against Pydantic schemas with confidence scoring, and lands the results in a Snowflake star schema (validated end-to-end) modelled with dbt — a DuckDB local target compiles the same models for laptop development with no cloud signup.
 
 Every extracted metric carries:
 
@@ -56,7 +57,7 @@ Every extracted metric carries:
 ## What this is NOT
 
 - ❌ **Not a product replacing MSCI / Sustainalytics / Bloomberg ESG / Briink / any other ESG data vendor.** Those vendors sell curated ratings, multi-thousand-issuer coverage, and analyst time. CSRD-Lake is a portfolio piece demonstrating the architectural pattern, not a competing product.
-- ❌ **Not a real bank loan book.** The `/portfolio` rollup demo uses a clearly-labeled synthetic 50-corporate set.
+- ❌ **Not a real bank loan book.** The `/portfolio` rollup demo uses a clearly-labelled synthetic 10-corporate exposure map composed over real Scope 1 emissions where they have been extracted.
 - ❌ **Not a complete CSRD compliance solution.** Single framework only (CSRD/ESRS); no TCFD/ISSB/Pillar 3 cross-walks in v1.
 - ❌ **Not production-grade authentication, RBAC, or SOC 2 controls.** Out of scope for a portfolio piece.
 
@@ -99,15 +100,17 @@ See [`docs/PRD.md`](docs/PRD.md) for full requirements, edge-case handling, and 
 
 > **Every numeric claim below has explicit test conditions** — verify with the linked commands.
 
-| Claim                                                                                                                    | Test condition                                                                                                                                                                                                               | How to verify                                        |
-| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| **158 tests passing at 91.81% coverage**                                                                                 | pytest with `--cov-fail-under=70`, branch coverage enabled, full suite                                                                                                                                                       | `make test`                                          |
-| **7 layered modules** ingestion / extraction / warehouse / orchestration / dbt staging / dbt marts / dbt reporting marts | One Python package per layer; one Airflow DAG composes them                                                                                                                                                                  | `tree src/csrd_lake airflow dbt_project/models`      |
-| **10 CAC 40 companies, 19 ESRS metrics, 5 ESRS topics** (E1, E2, E3, S1, G1)                                             | Manifest + catalog mirrored between Python (`prompts.py`) and dbt seeds (`esrs_metrics_seed.csv`); structural test enforces parity                                                                                           | `pytest tests/test_dbt_project_structure.py -k seed` |
-| **3 custom dbt data-quality tests**                                                                                      | metric-value-in-source / confidence-in-[0,1] / published-and-review-queue-disjoint                                                                                                                                           | `dbt test --select test_type:data`                   |
-| **No "vendor displacement" claims anywhere in the repo**                                                                 | `/moat-check` killed the "replaces €40-80k MSCI" framing on 2026-04-30 because Briink ships PDF→ESRS extraction at €195/month and MSCI's value is curated ratings, not parsing. Anti-regression test enforces this.          | `pytest tests/ -k killed_claims`                     |
-| **Conventional commits, zero AI co-author tags**                                                                         | All commits follow `feat(scope): subject` format; zero "Co-Authored-By: Claude" footers                                                                                                                                      | `git log --format="%H %s"`                           |
-| **96% extraction accuracy on a hand-verified gold set**                                                                  | _Pending Weekend 2 hand-verification of 800 datapoints (50 companies × 16 metrics) against published structured ESRS tables._ Number will be updated with the actual measured accuracy + per-language + per-topic breakdown. | TBD — verification harness in v2                     |
+| Claim                                                                                                                    | Test condition                                                                                                                                                                                                               | How to verify                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **168 tests passing at ~91% coverage**                                                                                   | pytest with `--cov-fail-under=70`, branch coverage enabled, full suite                                                                                                                                                       | `make test`                                                                             |
+| **7 layered modules** ingestion / extraction / warehouse / orchestration / dbt staging / dbt marts / dbt reporting marts | One Python package per layer; one Airflow DAG composes them                                                                                                                                                                  | `tree src/csrd_lake airflow dbt_project/models`                                         |
+| **10 CAC 40 companies in manifest, 3 with extracted profiles, 19 ESRS metrics, 5 ESRS topics** (E1, E2, E3, S1, G1)      | Manifest + catalog mirrored between Python (`prompts.py`) and dbt seeds (`esrs_metrics_seed.csv`); structural test enforces parity                                                                                           | `pytest tests/test_dbt_project_structure.py -k seed`                                    |
+| **32 ESRS metrics extracted, 14 published / 18 review-queued**                                                           | Real Claude + Mistral extractions against LVMH URD 2023, TotalEnergies S&C 2024, Schneider Electric URD 2024 (first explicitly CSRD-compliant) — every value carries a page citation                                         | `python scripts/export_dashboard_data.py --duckdb data/warehouse/csrd_lake.duckdb`      |
+| **Snowflake target validated end-to-end**                                                                                | Bootstrap script runs DDL + loads metrics via key-pair auth (bypasses MFA), dbt `seed`/`run`/`test` against `ULWVOTP-MJ06399`. Same models, same row counts, same marts as DuckDB                                            | `python scripts/bootstrap_snowflake.py && python scripts/dbt_run.py build --target dev` |
+| **3 custom dbt data-quality tests**                                                                                      | metric-value-in-source / confidence-in-[0,1] / published-and-review-queue-disjoint                                                                                                                                           | `dbt test --select test_type:data`                                                      |
+| **No "vendor displacement" claims anywhere in the repo**                                                                 | `/moat-check` killed the "replaces €40-80k MSCI" framing on 2026-04-30 because Briink ships PDF→ESRS extraction at €195/month and MSCI's value is curated ratings, not parsing. Anti-regression test enforces this.          | `pytest tests/ -k killed_claims`                                                        |
+| **Conventional commits, zero AI co-author tags**                                                                         | All commits follow `feat(scope): subject` format; zero "Co-Authored-By: Claude" footers                                                                                                                                      | `git log --format="%H %s"`                                                              |
+| **96% extraction accuracy on a hand-verified gold set**                                                                  | _Pending Weekend 2 hand-verification of 800 datapoints (50 companies × 16 metrics) against published structured ESRS tables._ Number will be updated with the actual measured accuracy + per-language + per-topic breakdown. | TBD — verification harness in v2                                                        |
 
 ## Tech stack
 
@@ -143,23 +146,28 @@ mindmap
       TOML manifest
       Magic-byte validation
     Warehouse
-      Snowflake
+      Snowflake validated
+      DuckDB local
       Star schema
       Parameterized executemany
+      RSA key-pair auth
     Transformation
-      dbt-core 1.9
+      dbt-core 1.11
       dbt-snowflake
+      dbt-duckdb
       dbt_utils
+      Auto-extending dim_metric
       Custom data tests
     Dashboard
       Next.js 16
       React 19
       Tailwind v4
       Server Components
+      Static prerender
     Quality
-      pytest 158 cases
+      pytest 168 cases
       ruff + mypy strict
-      91.81% coverage
+      91% coverage
       Anti-regression tests
     CI/CD
       GitHub Actions
@@ -193,16 +201,23 @@ make verify-llm PDF=data/samples/lvmh-2024.pdf TICKER=MC.PA TOPIC=E1
 #    .venv/Scripts/python.exe -m csrd_lake.extraction.cli --pdf data/samples/lvmh-2024.pdf --ticker MC.PA --topic E1
 
 # 5. Real-data batch — 3 PDFs × 5 ESRS topics → DuckDB warehouse (~$1.50, ~7 min)
-uv run python -m csrd_lake.ingestion.downloader --manifest    # downloads CAC 40 PDFs into data/raw/
-uv run python -m csrd_lake.extraction.batch --max-pages 200 --max-prompt-chars 80000 --inter-call-delay 8
+#    PDFs are already on disk under data/raw/; the batch CLI runs the LLM
+#    fallback chain, streams metrics into DuckDB, archives JSON per company.
+make extract-batch    # uv run python -m csrd_lake.extraction.batch ...
 
-# 6. Build the marts
-cd dbt_project
-DBT_TARGET=duckdb uv run dbt deps && DBT_TARGET=duckdb uv run dbt seed && DBT_TARGET=duckdb uv run dbt run
+# 6. Build the marts (DuckDB local target)
+make dbt-build        # cd dbt_project && DBT_TARGET=duckdb uv run dbt deps && seed && run
 
-# 7. Optional — Snowflake target (Docker Airflow stack)
-#    snowsql -f src/csrd_lake/warehouse/ddl.sql
-#    make services && make demo
+# 7. Refresh the dashboard JSON snapshot from the warehouse
+make export-dashboard # writes dashboard/lib/data/disclosures.json
+
+# Or chain 5-7 in one shot:
+make real-data-pipeline
+
+# 8. Optional — validate the same models against a real Snowflake account
+#    (requires SNOWFLAKE_PRIVATE_KEY_PATH in .env; see scripts/generate_snowflake_keypair.py)
+uv run python scripts/bootstrap_snowflake.py
+uv run python scripts/dbt_run.py build --target dev
 ```
 
 ## Project layout
@@ -221,13 +236,23 @@ csrd-lake/
 │   │                        mart_disclosure_published, mart_disclosure_review_queue
 │   ├── tests/               metric-value-in-source, confidence-in-[0,1], disjoint
 │   └── seeds/               companies, ESRS metrics, periods
-├── tests/                   158 pytest cases (mirrors src/, AST-tests for DAG + dbt + dashboard)
+├── tests/                   168 pytest cases (mirrors src/, AST-tests for DAG + dbt + dashboard)
+├── scripts/
+│   ├── bootstrap_snowflake.py     Run DDL + load extracted metrics into Snowflake (key-pair auth)
+│   ├── generate_snowflake_keypair.py  PKCS#8 keypair generator + ALTER USER SQL printer
+│   ├── dbt_run.py                 dotenv-loading dbt wrapper (forwards args to dbt)
+│   └── export_dashboard_data.py   Query DuckDB → write dashboard/lib/data/disclosures.json
+├── dashboard/
+│   ├── app/                 Next.js 16 routes — / (landing) · /companies · /company/[ticker] · /portfolio
+│   ├── components/          Card / Badge / MetricTable / ConfidenceBadge primitives
+│   └── lib/data/disclosures.json  Build-time JSON snapshot the dashboard imports
 ├── docs/
 │   ├── PRD.md               Source of truth for requirements
+│   ├── PROJECT_CONTEXT.md   Plain-language guide: why · what · how · honest scope · CV pointers
 │   └── PORTABILITY.md       Snowflake↔Synapse, Airflow↔ADF, Claude↔Azure OpenAI
 ├── docker-compose.yml       Airflow 2.10 + Postgres metadata
 ├── pyproject.toml           Pinned deps (uv-managed)
-└── Makefile                 setup / lint / test / smoke / demo / dbt-run / dbt-test
+└── Makefile                 setup · lint · test · smoke · ci · verify-llm · extract-batch · dbt-build · export-dashboard · real-data-pipeline · demo
 ```
 
 ## Methodology + test conditions
