@@ -71,7 +71,7 @@ const PIPELINE_STAGES: Array<{
   {
     step: "04",
     title: "Land",
-    body: "Bulk-insert into raw.disclosure_extracted. Same column shape on Snowflake (production) and DuckDB (local). Loader uses parameterised executemany — same metric_to_row mapping for both backends.",
+    body: "Bulk-insert into raw.disclosure_extracted. Same column shape on Snowflake (cloud) and DuckDB (local) — the current dashboard snapshot is sourced from Snowflake. Loader uses parameterised executemany; same metric_to_row mapping for both backends.",
     icon: Database,
   },
   {
@@ -107,7 +107,7 @@ const TECH_BY_LAYER: Array<{ layer: string; tools: string[] }> = [
   {
     layer: "Warehouse",
     tools: [
-      "Snowflake (validated)",
+      "Snowflake (live snapshot)",
       "DuckDB (local)",
       "snowflake-connector-python",
       "RSA key-pair auth",
@@ -355,12 +355,12 @@ export default function LandingPage() {
                 Claude + Mistral fallback chain
               </p>
               <p>
-                · Snowflake warehouse: DDL, key-pair auth, marts built, 54 of 55
-                dbt tests pass
+                · Snowflake warehouse currently powers this snapshot — DDL,
+                key-pair auth, marts built, 52 of 54 dbt tests pass
               </p>
               <p>
-                · DuckDB local fallback path also working — same models compile
-                on both
+                · DuckDB local target also fully working — same dbt models, same
+                row counts, byte-identical export
               </p>
               <p>· 167 pytest cases, ~91% coverage, GitHub Actions CI</p>
               <p>· Live dashboard deployed to Vercel, statically prerendered</p>
