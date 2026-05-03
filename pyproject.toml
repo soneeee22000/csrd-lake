@@ -97,9 +97,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S106"]
+"tests/**" = ["S101", "S106", "S608"]  # asserts + hardcoded creds in fixtures + f-string SQL with module-constant table names
 "airflow/dags/**" = ["T201"]  # DAGs may use print for Airflow log capture
 "src/csrd_lake/extraction/cli.py" = ["T201"]  # CLI legitimately writes to stdout
+"src/csrd_lake/extraction/batch.py" = ["T201"]  # batch CLI legitimately writes to stdout
 
 [tool.ruff.format]
 quote-style = "double"

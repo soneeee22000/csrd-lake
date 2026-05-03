@@ -15,7 +15,7 @@ Behavior:
     yield a deterministic snapshot.
   - Prints a one-screen routing + cost summary at the end.
 
-Cost estimate: ~$0.05-$0.15 per (PDF × topic) call. 3 PDFs × 5 topics ≈ $1-3.
+Cost estimate: ~$0.05-$0.15 per (PDF x topic) call. 3 PDFs x 5 topics ~= $1-3.
 
 Exit codes:
     0  — completed (some topics may have been skipped if both LLMs failed; logged)
@@ -143,14 +143,12 @@ def filter_pages_by_topic(pdf_text: str, topic: ESRSTopic, max_chars: int) -> st
     """
     keywords = TOPIC_KEYWORDS.get(topic, [])
     pages: list[tuple[int, str]] = []
-    cursor = 0
     matches = list(_PAGE_HEADER.finditer(pdf_text))
     for idx, match in enumerate(matches):
         page_num = int(match.group(1))
         end = matches[idx + 1].start() if idx + 1 < len(matches) else len(pdf_text)
         chunk = pdf_text[match.start() : end]
         pages.append((page_num, chunk))
-        cursor = end
     selected: list[str] = []
     total = 0
     for _, chunk in pages:
@@ -210,7 +208,7 @@ def _print_summary(results: list[TopicResult], duckdb_count: int, started: datet
     print(f"  Routed to review:       {review} ({100 * review / max(extracted, 1):.0f}%)")
     print(f"  Rows in DuckDB:         {duckdb_count}")
     print()
-    print("Per company × topic:")
+    print("Per company x topic:")
     by_ticker: dict[str, list[TopicResult]] = {}
     for r in results:
         by_ticker.setdefault(r.ticker, []).append(r)
